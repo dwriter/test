@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="application-name" content="Учёт часов">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Учёт часов">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+<title>Учёт часов</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#6b7280;--line:#dce3ec;
+  --accent:#2563eb;--accent2:#dbeafe;--today:#ff8a00;--good:#0f766e;
+  --danger:#b91c1c;--shadow:0 8px 28px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.shell{max-width:980px;margin:0 auto;padding:14px 12px 92px}
+.topbar{position:sticky;top:0;z-index:20;margin:-14px -12px 14px;padding:12px 12px 10px;background:rgba(244,247,251,.94);backdrop-filter:blur(12px);border-bottom:1px solid rgba(220,227,236,.85)}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand h1{font-size:21px;margin:0;font-weight:800;letter-spacing:-.02em}
+.save-state{font-size:12px;color:var(--muted);white-space:nowrap}
+.month-nav{display:grid;grid-template-columns:42px 1fr 42px;gap:8px;margin-top:10px}
+.icon-btn,.month-title,.tab-btn,.primary,.secondary,.danger,.small-btn{
+  border:1px solid var(--line);background:var(--card);border-radius:12px;color:var(--ink)
+}
+.icon-btn{height:42px;font-size:22px}
+.month-title{height:42px;font-weight:750;font-size:16px}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:var(--shadow)}
+.kpi .label{font-size:12px;color:var(--muted);margin-bottom:5px}
+.kpi .value{font-size:22px;font-weight:850;letter-spacing:-.03em}
+.kpi .sub{font-size:11px;color:var(--muted);margin-top:3px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.day-head{display:grid;grid-template-columns:82px minmax(180px,1fr) 150px;gap:8px;padding:10px 12px;background:#eef2f7;color:var(--muted);font-size:12px;font-weight:700;position:sticky;top:112px;z-index:9}
+.day-row{display:grid;grid-template-columns:82px minmax(180px,1fr) 150px;gap:8px;align-items:center;padding:9px 12px;border-top:1px solid #edf1f5;min-height:59px;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+.day-row.today{outline:3px solid var(--today);outline-offset:-3px}
+.day-row.off-day{background:#eef1f5;color:#667085}
+.day-row.work-mon{background:#eef6ff}
+.day-row.work-thu{background:#eefbf3}
+.day-row.work-fri{background:#f6f0ff}
+.day-row.work-sun{background:#fff0f1}
+.day-row:hover{box-shadow:inset 0 0 0 1px rgba(37,99,235,.12)}
+.date-main{font-weight:800;font-size:16px}
+.date-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.hours-control{display:grid;grid-template-columns:38px 1fr 38px;gap:6px;align-items:center}
+.small-btn{height:38px;font-size:20px;font-weight:700}
+.hours-input{width:100%;height:38px;border:1px solid var(--line);border-radius:10px;text-align:center;font-weight:750;padding:0 4px}
+.sum{text-align:right;font-weight:800}
+.sum small{display:block;color:var(--muted);font-weight:500;margin-top:2px}
+.section-title{font-size:17px;font-weight:850;margin:18px 2px 9px}
+.summary-list{padding:4px 12px}
+.summary-row{display:grid;grid-template-columns:1fr 100px 130px;gap:8px;padding:11px 4px;border-bottom:1px solid #edf1f5;align-items:center}
+.summary-row:last-child{border-bottom:0}
+.summary-row.header{color:var(--muted);font-size:12px;font-weight:700}
+.summary-row strong{text-align:right}
+.total-row{background:#f8fafc;font-weight:800}
+.settings{padding:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin:0 0 6px}
+.field input,.field select,.field textarea{width:100%;min-height:42px;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}
+.week-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.week-item{display:grid;grid-template-columns:1fr 130px;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #edf1f5}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.primary,.secondary,.danger{min-height:44px;padding:10px 12px;font-weight:750}
+.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.secondary{background:#fff}
+.danger{background:#fff;color:var(--danger);border-color:#fecaca}
+.note{font-size:12px;line-height:1.5;color:var(--muted);background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:12px}
+.tabs{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(980px,100%);display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:9px 12px calc(9px + env(safe-area-inset-bottom));background:rgba(244,247,251,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:30}
+.tab-btn{height:46px;font-weight:750}
+.tab-btn.active{background:#172033;color:#fff;border-color:#172033}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:76px;transform:translate(-50%,16px);background:#111827;color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:50;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.hidden{display:none!important}
+
+.today-dashboard{display:grid;gap:12px;max-width:720px;margin:0 auto}
+.today-card{padding:20px;border:2px solid #fed7aa;background:linear-gradient(180deg,#fffaf3 0%,#fff 70%)}
+.today-date{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.today-date .eyebrow{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.today-date h2{margin:4px 0 0;font-size:27px;line-height:1.08;letter-spacing:-.03em}
+.today-badge{background:var(--today);color:#fff;font-size:12px;font-weight:850;border-radius:999px;padding:7px 10px;white-space:nowrap}
+.today-hours-block{text-align:center;padding:8px 0 2px}
+.today-hours-label{color:var(--muted);font-size:13px;font-weight:700}
+.today-hours-value{display:flex;align-items:baseline;justify-content:center;gap:8px;margin:3px 0 12px}
+.today-hours-value strong{font-size:58px;line-height:1;font-weight:900;letter-spacing:-.06em}
+.today-hours-value span{font-size:19px;color:var(--muted);font-weight:700}
+.today-input{width:120px;height:50px;border:1px solid var(--line);border-radius:13px;text-align:center;font-size:21px;font-weight:850;background:#fff}
+.quick-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.quick-btn{border:1px solid var(--line);background:#fff;border-radius:13px;min-height:50px;font-weight:850;font-size:16px;color:var(--ink);transition:transform .12s ease,filter .12s ease}
+.quick-btn:active{transform:scale(.98)}
+.preset-label{margin-top:18px;font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.hour-presets{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:8px}
+.preset-btn{min-height:44px;border:1px solid #bfdbfe;border-radius:12px;background:#eff6ff;color:#1d4ed8;font-weight:900;font-size:16px}
+.preset-btn.active{background:#2563eb;color:#fff;border-color:#2563eb;box-shadow:0 5px 14px rgba(37,99,235,.18)}
+.month-overview{margin:12px 0}
+.month-overview-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.month-overview .kpi{box-shadow:none;margin:0}
+.month-progress{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 13px;box-shadow:var(--shadow)}
+.month-progress-head{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;color:var(--muted);font-weight:750;margin-bottom:8px}
+.month-progress-track{height:11px;background:#e8edf4;border-radius:999px;overflow:hidden}
+.month-progress-fill{height:100%;background:linear-gradient(90deg,#60a5fa,#2563eb);border-radius:999px;transition:width .2s ease}
+.quick-btn.sub{background:#fee2e2;border-color:#fecaca;color:#b91c1c}
+.quick-btn.add{background:#dcfce7;border-color:#bbf7d0;color:#166534}
+.today-income{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.today-income-box{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px}
+.today-income-box .label{font-size:12px;color:var(--muted);margin-bottom:4px}
+.today-income-box .value{font-size:21px;font-weight:900}
+.today-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+.today-secondary{border:1px solid var(--line);background:#fff;border-radius:12px;min-height:44px;font-weight:750}
+.today-month-card{padding:14px 16px}
+.today-progress-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+.today-progress-head strong{font-size:16px}
+.today-progress-head span{color:var(--muted);font-size:12px}
+.today-progress-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.today-mini{padding:10px;background:#f8fafc;border:1px solid var(--line);border-radius:12px}
+.today-mini .label{font-size:11px;color:var(--muted)}
+.today-mini .value{font-size:17px;font-weight:850;margin-top:3px}
+.outside-period{padding:28px 18px;text-align:center}
+.outside-period h2{margin:0 0 8px;font-size:23px}
+.outside-period p{color:var(--muted);line-height:1.5;margin:0 0 18px}
+@media (max-width:700px){
+  .shell{padding-left:8px;padding-right:8px}
+  .topbar{margin-left:-8px;margin-right:-8px;padding-left:8px;padding-right:8px}
+  .kpis{grid-template-columns:repeat(2,1fr);gap:7px}
+  .kpi{padding:11px}.kpi .value{font-size:19px}
+  .day-head{display:none}
+  .card.days{background:transparent;border:0;box-shadow:none;overflow:visible}
+  .day-row{grid-template-columns:78px 1fr;gap:8px 10px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;padding:10px;box-shadow:0 4px 16px rgba(15,23,42,.045)}
+  .day-row.off-day{background:#eef1f5}
+  .day-row.work-mon{background:#eef6ff}
+  .day-row.work-thu{background:#eefbf3}
+  .day-row.work-fri{background:#f6f0ff}
+  .day-row.work-sun{background:#fff0f1}
+  .day-row .hours-wrap{grid-column:1 / 2;grid-row:2}
+  .day-row .sum{grid-column:2;grid-row:2;text-align:right}
+  .hours-control{grid-template-columns:34px 58px 34px;justify-content:start}
+  .small-btn,.hours-input{height:36px}
+  .sum{font-size:16px}
+  .form-grid,.actions,.week-grid{grid-template-columns:1fr}
+  .week-item{grid-template-columns:1fr 145px}
+  .summary-row{grid-template-columns:1fr 72px 110px}
+  .tabs{grid-template-columns:repeat(4,1fr);gap:5px;padding-left:7px;padding-right:7px}
+  .tab-btn{font-size:12px;height:45px;padding:0 4px}
+  .today-card{padding:16px}
+  .today-date h2{font-size:24px}
+  .today-hours-value strong{font-size:54px}
+  .quick-buttons{grid-template-columns:repeat(2,1fr)}
+  .hour-presets{grid-template-columns:repeat(5,1fr);gap:5px}
+  .preset-btn{min-height:42px;font-size:15px;padding:0}
+  .month-overview-grid{grid-template-columns:repeat(2,1fr)}
+  .month-overview-grid .kpi:last-child{grid-column:1 / -1}
+  .today-income{grid-template-columns:1fr 1fr}
+  .today-progress-grid{grid-template-columns:1fr 1fr 1fr}
+  .today-mini{padding:9px 7px}
+  .today-mini .value{font-size:15px}
+}
+
+.pwa-box{display:grid;gap:10px}
+.pwa-status{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#f8fafc;color:var(--muted);font-size:13px;line-height:1.45}
+.pwa-status strong{color:var(--ink)}
+.install-btn:disabled{opacity:.55;cursor:default}
+</style>
+</head>
+<body>
+<script id="factory-data" type="application/json">{"version":2,"appId":"income-hours-sep-oct-2026-v3","updatedAt":"2026-09-20T10:00:00.000Z","settings":{"weekdayRate":1900,"weekendRate":2100,"hourStep":0.5},"entries":{"2026-09-01":{"hours":null},"2026-09-02":{"hours":null},"2026-09-03":{"hours":5},"2026-09-04":{"hours":4},"2026-09-05":{"hours":null},"2026-09-06":{"hours":3},"2026-09-07":{"hours":6},"2026-09-08":{"hours":null},"2026-09-09":{"hours":null},"2026-09-10":{"hours":5},"2026-09-11":{"hours":4},"2026-09-12":{"hours":null},"2026-09-13":{"hours":3},"2026-09-14":{"hours":6},"2026-09-15":{"hours":null},"2026-09-16":{"hours":null},"2026-09-17":{"hours":5},"2026-09-18":{"hours":6},"2026-09-19":{"hours":null},"2026-09-20":{"hours":5},"2026-09-21":{"hours":6},"2026-09-22":{"hours":null},"2026-09-23":{"hours":null},"2026-09-24":{"hours":5},"2026-09-25":{"hours":6},"2026-09-26":{"hours":null},"2026-09-27":{"hours":5},"2026-09-28":{"hours":6},"2026-09-29":{"hours":null},"2026-09-30":{"hours":null},"2026-10-01":{"hours":5},"2026-10-02":{"hours":6},"2026-10-03":{"hours":null},"2026-10-04":{"hours":5},"2026-10-05":{"hours":6},"2026-10-06":{"hours":null},"2026-10-07":{"hours":null},"2026-10-08":{"hours":5},"2026-10-09":{"hours":6},"2026-10-10":{"hours":null},"2026-10-11":{"hours":5},"2026-10-12":{"hours":6},"2026-10-13":{"hours":null},"2026-10-14":{"hours":null},"2026-10-15":{"hours":5},"2026-10-16":{"hours":6},"2026-10-17":{"hours":null},"2026-10-18":{"hours":5},"2026-10-19":{"hours":6},"2026-10-20":{"hours":null},"2026-10-21":{"hours":null},"2026-10-22":{"hours":5},"2026-10-23":{"hours":6},"2026-10-24":{"hours":null},"2026-10-25":{"hours":5},"2026-10-26":{"hours":6},"2026-10-27":{"hours":null},"2026-10-28":{"hours":null},"2026-10-29":{"hours":5},"2026-10-30":{"hours":6},"2026-10-31":{"hours":null}}}</script>
+<script id="embedded-data" type="application/json">{"version":2,"appId":"income-hours-sep-oct-2026-v3","updatedAt":"2026-09-20T10:00:00.000Z","settings":{"weekdayRate":1900,"weekendRate":2100,"hourStep":0.5},"entries":{"2026-09-01":{"hours":null},"2026-09-02":{"hours":null},"2026-09-03":{"hours":5},"2026-09-04":{"hours":4},"2026-09-05":{"hours":null},"2026-09-06":{"hours":3},"2026-09-07":{"hours":6},"2026-09-08":{"hours":null},"2026-09-09":{"hours":null},"2026-09-10":{"hours":5},"2026-09-11":{"hours":4},"2026-09-12":{"hours":null},"2026-09-13":{"hours":3},"2026-09-14":{"hours":6},"2026-09-15":{"hours":null},"2026-09-16":{"hours":null},"2026-09-17":{"hours":5},"2026-09-18":{"hours":6},"2026-09-19":{"hours":null},"2026-09-20":{"hours":5},"2026-09-21":{"hours":6},"2026-09-22":{"hours":null},"2026-09-23":{"hours":null},"2026-09-24":{"hours":5},"2026-09-25":{"hours":6},"2026-09-26":{"hours":null},"2026-09-27":{"hours":5},"2026-09-28":{"hours":6},"2026-09-29":{"hours":null},"2026-09-30":{"hours":null},"2026-10-01":{"hours":5},"2026-10-02":{"hours":6},"2026-10-03":{"hours":null},"2026-10-04":{"hours":5},"2026-10-05":{"hours":6},"2026-10-06":{"hours":null},"2026-10-07":{"hours":null},"2026-10-08":{"hours":5},"2026-10-09":{"hours":6},"2026-10-10":{"hours":null},"2026-10-11":{"hours":5},"2026-10-12":{"hours":6},"2026-10-13":{"hours":null},"2026-10-14":{"hours":null},"2026-10-15":{"hours":5},"2026-10-16":{"hours":6},"2026-10-17":{"hours":null},"2026-10-18":{"hours":5},"2026-10-19":{"hours":6},"2026-10-20":{"hours":null},"2026-10-21":{"hours":null},"2026-10-22":{"hours":5},"2026-10-23":{"hours":6},"2026-10-24":{"hours":null},"2026-10-25":{"hours":5},"2026-10-26":{"hours":6},"2026-10-27":{"hours":null},"2026-10-28":{"hours":null},"2026-10-29":{"hours":5},"2026-10-30":{"hours":6},"2026-10-31":{"hours":null}}}</script>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+<script>
+"use strict";
+const MONTHS=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+const WD=["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+const WD_FULL=["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
+const PERIOD=[{y:2026,m:9},{y:2026,m:10},{y:2026,m:11},{y:2026,m:12},{y:2027,m:1},{y:2027,m:2},{y:2027,m:3},{y:2027,m:4},{y:2027,m:5},{y:2027,m:6}];
+const FACTORY_RAW=JSON.parse(document.getElementById("factory-data").textContent);
+const EMBEDDED_RAW=JSON.parse(document.getElementById("embedded-data").textContent);
+
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function key(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`}
+function daysIn(y,m){return new Date(y,m,0).getDate()}
+function normalizeState(raw){
+  raw=raw||{};
+  const s=raw.settings||{}, src=raw.entries||{}, clean={};
+  PERIOD.forEach(p=>{for(let d=1;d<=daysIn(p.y,p.m);d++){
+    const k=key(p.y,p.m,d), val=src[k]&&src[k].hours;
+    const n=(val===null||val===""||typeof val==="undefined")?null:Number(val);
+    clean[k]={hours:Number.isFinite(n)&&n>0?n:null};
+  }});
+  return {
+    version:2,
+    appId:"income-hours-sep-oct-2026-v3",
+    updatedAt:raw.updatedAt||"1970-01-01T00:00:00.000Z",
+    settings:{
+      weekdayRate:Math.max(0,Number(s.weekdayRate)||1900),
+      weekendRate:Math.max(0,Number(s.weekendRate)||2100),
+      hourStep:Math.max(.1,Number(s.hourStep)||.5)
+    },
+    entries:clean
+  };
+}
+const FACTORY=normalizeState(FACTORY_RAW);
+const EMBEDDED=normalizeState(EMBEDDED_RAW);
+const storageKey="hoursTracker:"+EMBEDDED.appId;
+let state=loadState();
+let view={tab:"today",idx:initialMonthIndex(),scrolled:false,selectedDay:null};
+
+let deferredInstallPrompt=null;
+function isStandaloneMode(){return window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true}
+function pwaInstallStatusHtml(){
+  if(isStandaloneMode())return "<strong>Установлено.</strong> Приложение запускается отдельно от браузера и продолжает работать офлайн.";
+  if(deferredInstallPrompt)return "<strong>Готово к установке.</strong> Нажмите кнопку выше — появится системное окно установки.";
+  if(location.protocol==="file:")return "Для установки PWA откройте эту же папку как HTTPS-сайт (например, через GitHub Pages). Обычный локальный HTML продолжит работать, но установить его как PWA нельзя.";
+  return "Если системное окно не появляется, откройте меню браузера и выберите «Установить приложение» или «Добавить на главный экран». После первого открытия приложение сможет работать офлайн.";
+}
+async function installPwa(){
+  if(isStandaloneMode()){toast("Приложение уже установлено");return}
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    try{await deferredInstallPrompt.userChoice}catch(e){}
+    deferredInstallPrompt=null;
+    render();
+    return;
+  }
+  alert("Если браузер не показал окно автоматически: откройте меню Chrome → «Установить приложение» или «Добавить на главный экран». Для установки страница должна быть открыта по HTTPS.");
+}
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;const s=document.getElementById("pwaStatus");if(s)s.innerHTML=pwaInstallStatusHtml();const b=document.getElementById("installApp");if(b)b.disabled=false});
+window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;toast("Приложение установлено");render()});
+if("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost" || location.hostname==="127.0.0.1")){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
+}
+
+function loadState(){
+  let local=null;
+  try{local=JSON.parse(localStorage.getItem(storageKey)||"null")}catch(e){}
+  if(local && new Date(local.updatedAt||0)>=new Date(EMBEDDED.updatedAt||0)) return normalizeState(local);
+  return clone(EMBEDDED);
+}
+function save(){
+  state.updatedAt=new Date().toISOString();
+  try{localStorage.setItem(storageKey,JSON.stringify(state));setSaveState("Сохранено")}catch(e){setSaveState("Только в этой сессии")}
+}
+function setSaveState(t){const el=document.querySelector(".save-state");if(el)el.textContent=t}
+function toast(t){
+  const el=document.getElementById("toast");el.textContent=t;el.classList.add("show");
+  clearTimeout(window.__tt);window.__tt=setTimeout(()=>el.classList.remove("show"),1800);
+}
+function getEntry(y,m,d){
+  const k=key(y,m,d);
+  if(!state.entries[k])state.entries[k]={hours:null};
+  return state.entries[k];
+}
+function dateInfo(y,m,d){const dt=new Date(y,m-1,d,12);return {dt,wd:dt.getDay()}}
+function rateFor(y,m,d){const wd=dateInfo(y,m,d).wd;return wd===0||wd===6?+state.settings.weekendRate||0:+state.settings.weekdayRate||0}
+function dayAmount(y,m,d){const h=Number(getEntry(y,m,d).hours);return Number.isFinite(h)&&h>0?h*rateFor(y,m,d):0}
+function monthStats(y,m,cutoff=null){
+  let hours=0,amount=0,weekdayHours=0,weekendHours=0,workedDays=0;
+  for(let d=1;d<=daysIn(y,m);d++){
+    if(cutoff!==null&&d>cutoff)break;
+    const h=Number(getEntry(y,m,d).hours);
+    if(Number.isFinite(h)&&h>0){
+      hours+=h;amount+=h*rateFor(y,m,d);workedDays++;
+      const wd=dateInfo(y,m,d).wd;
+      if(wd===0||wd===6)weekendHours+=h;else weekdayHours+=h;
+    }
+  }
+  return {hours,amount,weekdayHours,weekendHours,workedDays};
+}
+function monthProgressInfo(y,m){
+  const now=new Date(), total=daysIn(y,m);
+  const target=new Date(y,m-1,1,12), current=new Date(now.getFullYear(),now.getMonth(),1,12);
+  if(target<current)return {pct:100,label:`${total} из ${total} дней`};
+  if(target>current)return {pct:0,label:`0 из ${total} дней`};
+  const elapsed=Math.min(now.getDate(),total);
+  return {pct:Math.round(elapsed/total*100),label:`${elapsed} из ${total} дней`};
+}
+function periodStats(cutToday=false){
+  const now=new Date();let hours=0,amount=0,weekdayHours=0,weekendHours=0;
+  PERIOD.forEach(p=>{
+    if(cutToday){
+      const first=new Date(p.y,p.m-1,1,12),curFirst=new Date(now.getFullYear(),now.getMonth(),1,12);
+      if(first>curFirst)return;
+      const cutoff=(p.y===now.getFullYear()&&p.m===now.getMonth()+1)?now.getDate():null;
+      const s=monthStats(p.y,p.m,cutoff);hours+=s.hours;amount+=s.amount;weekdayHours+=s.weekdayHours;weekendHours+=s.weekendHours;
+    }else{const s=monthStats(p.y,p.m);hours+=s.hours;amount+=s.amount;weekdayHours+=s.weekdayHours;weekendHours+=s.weekendHours}
+  });
+  return {hours,amount,weekdayHours,weekendHours};
+}
+function periodStatsThroughDate(y,m,d){
+  let hours=0,amount=0,weekdayHours=0,weekendHours=0;
+  for(const p of PERIOD){
+    const cur=new Date(p.y,p.m-1,1,12),target=new Date(y,m-1,1,12);
+    if(cur>target)break;
+    const cutoff=(p.y===y&&p.m===m)?d:null;
+    const s=monthStats(p.y,p.m,cutoff);hours+=s.hours;amount+=s.amount;weekdayHours+=s.weekdayHours;weekendHours+=s.weekendHours;
+  }
+  return {hours,amount,weekdayHours,weekendHours};
+}
+function todayAmountFor(y,m){
+  const now=new Date(),target=new Date(y,m-1,1,12),cur=new Date(now.getFullYear(),now.getMonth(),1,12);
+  if(target>cur)return {hours:0,amount:0,weekdayHours:0,weekendHours:0};
+  if(target<cur)return monthStats(y,m);
+  return monthStats(y,m,now.getDate());
+}
+function rub(v){return new Intl.NumberFormat("ru-RU",{maximumFractionDigits:0}).format(Math.round(v))+" ₽"}
+function num(v){return new Intl.NumberFormat("ru-RU",{maximumFractionDigits:1}).format(v)}
+function initialMonthIndex(){const n=new Date(),i=PERIOD.findIndex(p=>p.y===n.getFullYear()&&p.m===n.getMonth()+1);return i>=0?i:0}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
+
+function render(){
+  const app=document.getElementById("app");
+  const main=view.tab==="today"?todayView():view.tab==="month"?(view.selectedDay?selectedDayView():monthView()):view.tab==="summary"?summaryView():settingsView();
+  app.innerHTML=`<div class="shell">
+    <div class="topbar">
+      <div class="brand"><h1>Учёт часов <span style="font-weight:600;color:var(--muted)">· 2026/27</span></h1><div class="save-state">Сохранено</div></div>
+      ${view.tab==="month"&&!view.selectedDay?monthNav():""}
+    </div>
+    <main>${main}</main>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn ${view.tab==="today"?"active":""}" data-tab="today">Сегодня</button>
+    <button class="tab-btn ${view.tab==="month"?"active":""}" data-tab="month">Месяц</button>
+    <button class="tab-btn ${view.tab==="summary"?"active":""}" data-tab="summary">Свод</button>
+    <button class="tab-btn ${view.tab==="settings"?"active":""}" data-tab="settings">Настройки</button>
+  </nav>`;
+  bind();
+  if(view.tab==="month")scrollTodayOnce();
+}
+function todayView(){
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1,d=now.getDate();
+  const idx=PERIOD.findIndex(p=>p.y===y&&p.m===m);
+  if(idx<0){
+    return `<section class="card outside-period"><h2>Сегодня вне учебного года</h2><p>Приложение охватывает учебный год с сентября 2026 по июнь 2027. Данные можно открыть во вкладках «Месяц» и «Свод».</p><button class="primary" id="openCurrentPeriod">Открыть данные</button></section>`;
+  }
+  return dayCardView(y,m,d,true);
+}
+function selectedDayView(){
+  const s=view.selectedDay;
+  if(!s)return monthView();
+  return dayCardView(s.y,s.m,s.d,false);
+}
+function dayCardView(y,m,d,isToday){
+  const e=getEntry(y,m,d),h=Number(e.hours)||0,rate=rateFor(y,m,d),amount=dayAmount(y,m,d);
+  const inf=dateInfo(y,m,d),monthTo=monthStats(y,m,d,d),full=monthStats(y,m),period=periodStatsThroughDate(y,m,d);
+  const dateLabel=`${WD_FULL[inf.wd]}, ${d} ${MONTHS[m-1].toLowerCase()} ${y}`;
+  const badge=isToday?`<div class="today-badge">Сегодня</div>`:`<div class="today-badge" style="background:#2563eb">Выбранный день</div>`;
+  const eyebrow=isToday?"Быстрый ввод":"Редактирование дня";
+  const hoursLabel=isToday?"Отработано сегодня":"Отработано за день";
+  const incomeLabel=isToday?"Доход сегодня":"Доход за день";
+  const rightAction=isToday
+    ? `<button class="today-secondary" id="openTodayMonth">Открыть месяц</button>`
+    : `<button class="today-secondary" id="backToMonth">← Назад к месяцу</button>`;
+  return `<div class="today-dashboard">
+    <section class="card today-card">
+      <div class="today-date"><div><div class="eyebrow">${eyebrow}</div><h2>${dateLabel}</h2></div>${badge}</div>
+      <div class="today-hours-block">
+        <div class="today-hours-label">${hoursLabel}</div>
+        <div class="today-hours-value"><strong>${num(h)}</strong><span>ч</span></div>
+        <input class="today-input" data-action="hours" data-y="${y}" data-m="${m}" data-d="${d}" type="number" inputmode="decimal" min="0" step="${state.settings.hourStep||0.5}" value="${e.hours??""}" placeholder="0">
+        <div class="quick-buttons">
+          <button class="quick-btn sub" data-quick-delta="-1" data-y="${y}" data-m="${m}" data-d="${d}">−1 ч</button>
+          <button class="quick-btn sub" data-quick-delta="-0.5" data-y="${y}" data-m="${m}" data-d="${d}">−0,5 ч</button>
+          <button class="quick-btn add" data-quick-delta="0.5" data-y="${y}" data-m="${m}" data-d="${d}">+0,5 ч</button>
+          <button class="quick-btn add" data-quick-delta="1" data-y="${y}" data-m="${m}" data-d="${d}">+1 ч</button>
+        </div>
+        <div class="preset-label">Быстро установить часы</div>
+        <div class="hour-presets">
+          ${[6,7,8,9,10].map(v=>`<button class="preset-btn ${h===v?"active":""}" data-preset-hours="${v}" data-y="${y}" data-m="${m}" data-d="${d}">${v}</button>`).join("")}
+        </div>
+      </div>
+      <div class="today-income">
+        <div class="today-income-box"><div class="label">${incomeLabel}</div><div class="value">${rub(amount)}</div></div>
+        <div class="today-income-box"><div class="label">Ставка</div><div class="value">${rub(rate)}/ч</div></div>
+      </div>
+      <div class="today-actions">
+        <button class="today-secondary" data-clear-day="1" data-y="${y}" data-m="${m}" data-d="${d}">Очистить часы</button>
+        ${rightAction}
+      </div>
+    </section>
+    <section class="card today-month-card">
+      <div class="today-progress-head"><strong>${MONTHS[m-1]} ${y}</strong><span>свод по ${d} число</span></div>
+      <div class="today-progress-grid">
+        <div class="today-mini"><div class="label">По этот день</div><div class="value">${rub(monthTo.amount)}</div></div>
+        <div class="today-mini"><div class="label">Будни</div><div class="value">${num(monthTo.weekdayHours)} ч</div></div>
+        <div class="today-mini"><div class="label">Выходные</div><div class="value">${num(monthTo.weekendHours)} ч</div></div>
+      </div>
+    </section>
+    <section class="card today-month-card">
+      <div class="today-progress-head"><strong>Месяц целиком</strong><span>по заполненным значениям</span></div>
+      <div class="today-progress-grid">
+        <div class="today-mini"><div class="label">Всего часов</div><div class="value">${num(full.hours)} ч</div></div>
+        <div class="today-mini"><div class="label">Будни</div><div class="value">${num(full.weekdayHours)} ч</div></div>
+        <div class="today-mini"><div class="label">Выходные</div><div class="value">${num(full.weekendHours)} ч</div></div>
+      </div>
+      <div class="today-progress-grid" style="margin-top:8px">
+        <div class="today-mini"><div class="label">Сумма месяца</div><div class="value">${rub(full.amount)}</div></div>
+        <div class="today-mini"><div class="label">После этого дня</div><div class="value">${num(Math.max(0,full.hours-monthTo.hours))} ч</div></div>
+        <div class="today-mini"><div class="label">За период</div><div class="value">${rub(period.amount)}</div></div>
+      </div>
+    </section>
+  </div>`;
+}
+function monthNav(){
+  const p=PERIOD[view.idx];
+  return `<div class="month-nav">
+    <button class="icon-btn" id="prevMonth" ${view.idx===0?"disabled":""}>‹</button>
+    <button class="month-title" id="monthPicker">${MONTHS[p.m-1]} ${p.y}</button>
+    <button class="icon-btn" id="nextMonth" ${view.idx===PERIOD.length-1?"disabled":""}>›</button>
+  </div>`;
+}
+function monthView(){
+  const p=PERIOD[view.idx],full=monthStats(p.y,p.m),to=todayAmountFor(p.y,p.m),period=periodStats(false);
+  const rows=[],now=new Date();
+  for(let d=1;d<=daysIn(p.y,p.m);d++){
+    const inf=dateInfo(p.y,p.m,d),e=getEntry(p.y,p.m,d);
+    const isToday=p.y===now.getFullYear()&&p.m===now.getMonth()+1&&d===now.getDate();
+    const dayClass=inf.wd===1?"work-mon":inf.wd===4?"work-thu":inf.wd===5?"work-fri":inf.wd===0?"work-sun":"off-day";
+    const dayType=(inf.wd===1||inf.wd===4||inf.wd===5||inf.wd===0)?"рабочий":"нерабочий";
+    rows.push(`<div class="day-row ${isToday?"today":""} ${dayClass}" data-date="${key(p.y,p.m,d)}" data-open-day="1" data-y="${p.y}" data-m="${p.m}" data-d="${d}">
+      <div><div class="date-main">${d} ${WD[inf.wd]}</div><div class="date-sub">${dayType}</div></div>
+      <div class="hours-wrap"><div class="hours-control">
+        <button class="small-btn" data-action="minus" data-y="${p.y}" data-m="${p.m}" data-d="${d}">−</button>
+        <input class="hours-input" data-action="hours" data-y="${p.y}" data-m="${p.m}" data-d="${d}" type="number" inputmode="decimal" min="0" step="${state.settings.hourStep||0.5}" value="${e.hours??""}" placeholder="0">
+        <button class="small-btn" data-action="plus" data-y="${p.y}" data-m="${p.m}" data-d="${d}">+</button>
+      </div></div>
+      <div class="sum">${rub(dayAmount(p.y,p.m,d))}<small>${rateFor(p.y,p.m,d)} ₽/ч</small></div>
+    </div>`);
+  }
+  const progress=monthProgressInfo(p.y,p.m),avgDay=full.workedDays?full.amount/full.workedDays:0;
+  return `<section class="month-overview">
+    <div class="month-overview-grid">
+      <div class="kpi"><div class="label">Заработано</div><div class="value">${rub(full.amount)}</div><div class="sub">${full.workedDays} рабочих дней</div></div>
+      <div class="kpi"><div class="label">Всего часов</div><div class="value">${num(full.hours)} ч</div><div class="sub">на сегодня: ${num(to.hours)} ч</div></div>
+      <div class="kpi"><div class="label">Будни</div><div class="value">${num(full.weekdayHours)} ч</div><div class="sub">понедельник–пятница</div></div>
+      <div class="kpi"><div class="label">Выходные</div><div class="value">${num(full.weekendHours)} ч</div><div class="sub">суббота–воскресенье</div></div>
+      <div class="kpi"><div class="label">Средний доход / рабочий день</div><div class="value">${full.workedDays?rub(avgDay):"—"}</div><div class="sub">по дням с внесёнными часами</div></div>
+    </div>
+    <div class="month-progress">
+      <div class="month-progress-head"><span>Прогресс месяца</span><strong>${progress.label} · ${progress.pct}%</strong></div>
+      <div class="month-progress-track"><div class="month-progress-fill" style="width:${progress.pct}%"></div></div>
+    </div>
+  </section>
+  <section class="card days">
+    <div class="day-head"><div>Дата</div><div>Часы</div><div style="text-align:right">Сумма</div></div>
+    ${rows.join("")}
+  </section>`;
+}
+function summaryView(){
+  let totalH=0,totalA=0,totalWeekdayH=0,totalWeekendH=0;const now=new Date();
+  const rows=PERIOD.map((p,i)=>{
+    const s=monthStats(p.y,p.m);totalH+=s.hours;totalA+=s.amount;totalWeekdayH+=s.weekdayHours;totalWeekendH+=s.weekendHours;
+    const isCur=p.y===now.getFullYear()&&p.m===now.getMonth()+1;
+    return `<div class="summary-row ${isCur?"today":""}" data-open-month="${i}"><span>${MONTHS[p.m-1]} ${p.y}</span><strong>${num(s.hours)} ч</strong><strong>${rub(s.amount)}</strong></div>`;
+  });
+  const to=periodStats(true);
+  return `<section class="kpis">
+    <div class="kpi"><div class="label">По сегодня</div><div class="value">${rub(to.amount)}</div><div class="sub">${num(to.hours)} ч</div></div>
+    <div class="kpi"><div class="label">Учебный год</div><div class="value">${rub(totalA)}</div><div class="sub">${num(totalH)} ч</div></div>
+    <div class="kpi"><div class="label">Будни · учебный год</div><div class="value">${num(totalWeekdayH)} ч</div><div class="sub">понедельник–пятница</div></div>
+    <div class="kpi"><div class="label">Выходные · учебный год</div><div class="value">${num(totalWeekendH)} ч</div><div class="sub">суббота–воскресенье</div></div>
+  </section>
+  <div class="section-title">По месяцам</div>
+  <section class="card summary-list">
+    <div class="summary-row header"><span>Месяц</span><strong>Часы</strong><strong>Сумма</strong></div>
+    ${rows.join("")}
+    <div class="summary-row total-row"><span>Итого</span><strong>${num(totalH)} ч</strong><strong>${rub(totalA)}</strong></div>
+  </section>`;
+}
+function settingsView(){
+  return `<div class="section-title">Расчёт</div><section class="card settings">
+    <div class="form-grid">
+      <div class="field"><label>Будни, ₽/час</label><input id="weekdayRate" type="number" min="0" step="50" value="${esc(state.settings.weekdayRate)}"></div>
+      <div class="field"><label>Выходные, ₽/час</label><input id="weekendRate" type="number" min="0" step="50" value="${esc(state.settings.weekendRate)}"></div>
+      <div class="field"><label>Шаг изменения часов</label><input id="hourStep" type="number" min="0.1" step="0.1" value="${esc(state.settings.hourStep||0.5)}"></div>
+    </div>
+  </section>
+  <div class="section-title">Приложение</div><section class="card settings">
+    <div class="pwa-box">
+      <button class="primary install-btn" id="installApp">Установить на телефон</button>
+      <div class="pwa-status" id="pwaStatus">${pwaInstallStatusHtml()}</div>
+    </div>
+  </section>
+  <div class="section-title">Резервные копии</div><section class="card settings">
+    <div class="actions">
+      <button class="primary" id="saveHtml">Сохранить HTML с данными</button>
+      <button class="secondary" id="exportJson">Скачать копию JSON</button>
+      <button class="secondary" id="importJson">Импортировать JSON</button>
+      <button class="secondary" id="exportCsv">Экспорт CSV</button>
+      <button class="danger" id="resetFactory">Сбросить к исходным данным</button>
+    </div>
+    <input id="fileInput" type="file" accept=".json,application/json" class="hidden">
+    <div class="note"><b>Автосохранение:</b> изменения хранятся в браузере на этом устройстве. Кнопка «Сохранить HTML с данными» создаёт автономную копию для архива. Данные установленного PWA сохраняются локально на телефоне; JSON-копию удобно хранить на Яндекс Диске.</div>
+  </section>`;
+}
+function bind(){
+  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{view.tab=b.dataset.tab;view.selectedDay=null;view.scrolled=false;render()});
+  const prev=document.getElementById("prevMonth");if(prev)prev.onclick=()=>{if(view.idx>0){view.idx--;view.selectedDay=null;view.scrolled=false;render()}};
+  const next=document.getElementById("nextMonth");if(next)next.onclick=()=>{if(view.idx<PERIOD.length-1){view.idx++;view.selectedDay=null;view.scrolled=false;render()}};
+  const pick=document.getElementById("monthPicker");if(pick)pick.onclick=cycleMonth;
+  document.querySelectorAll('[data-action="plus"],[data-action="minus"]').forEach(b=>b.onclick=(ev)=>{ev.stopPropagation();adjustHours(b,b.dataset.action==="plus"?1:-1)});
+  document.querySelectorAll('[data-action="hours"]').forEach(i=>{
+    i.onclick=ev=>ev.stopPropagation();
+    i.onchange=()=>setHours(i);i.onblur=()=>setHours(i)
+  });
+  document.querySelectorAll('[data-quick-delta]').forEach(b=>b.onclick=()=>adjustHoursBy(+b.dataset.y,+b.dataset.m,+b.dataset.d,+b.dataset.quickDelta));
+  document.querySelectorAll('[data-preset-hours]').forEach(b=>b.onclick=()=>setPresetHours(+b.dataset.y,+b.dataset.m,+b.dataset.d,+b.dataset.presetHours));
+  document.querySelectorAll('[data-open-day]').forEach(r=>r.onclick=(ev)=>{
+    if(ev.target.closest('button,input,select'))return;
+    view.selectedDay={y:+r.dataset.y,m:+r.dataset.m,d:+r.dataset.d};
+    view.tab="month";view.scrolled=false;render();window.scrollTo({top:0,behavior:"smooth"});
+  });
+  document.querySelectorAll('[data-clear-day]').forEach(b=>b.onclick=()=>clearDayHours(+b.dataset.y,+b.dataset.m,+b.dataset.d));
+  const backToMonth=document.getElementById("backToMonth");if(backToMonth)backToMonth.onclick=()=>{view.selectedDay=null;view.scrolled=false;render()};
+  const openTodayMonth=document.getElementById("openTodayMonth");if(openTodayMonth)openTodayMonth.onclick=openMonthForToday;
+  const openCurrentPeriod=document.getElementById("openCurrentPeriod");if(openCurrentPeriod)openCurrentPeriod.onclick=()=>{view.idx=initialMonthIndex();view.tab="month";view.selectedDay=null;render()};
+  document.querySelectorAll("[data-open-month]").forEach(r=>r.onclick=()=>{view.idx=+r.dataset.openMonth;view.tab="month";view.selectedDay=null;view.scrolled=false;render()});
+  bindSettings();
+}
+function cycleMonth(){
+  const labels=PERIOD.map((p,i)=>`${i+1}. ${MONTHS[p.m-1]} ${p.y}`).join("\n");
+  const ans=prompt("Введите номер месяца:\n"+labels,String(view.idx+1));
+  const n=Number(ans);if(Number.isInteger(n)&&n>=1&&n<=PERIOD.length){view.idx=n-1;view.scrolled=false;render()}
+}
+function adjustHoursBy(y,m,d,delta){const e=getEntry(y,m,d),cur=Number(e.hours)||0,next=Math.max(0,Math.round((cur+delta)*100)/100);e.hours=next===0?null:next;save();render()}
+function setPresetHours(y,m,d,h){const e=getEntry(y,m,d);e.hours=Math.max(0,Number(h)||0)||null;save();render();toast(`${h} ч установлено`)}
+function clearDayHours(y,m,d){
+  const e=getEntry(y,m,d);
+  if(e.hours===null||typeof e.hours==="undefined")return;
+  if(!confirm(`Очистить часы за ${d} ${MONTHS[m-1].toLowerCase()}?`))return;
+  e.hours=null;save();render();toast("Часы за день очищены");
+}
+function openMonthForToday(){const n=new Date(),i=PERIOD.findIndex(p=>p.y===n.getFullYear()&&p.m===n.getMonth()+1);if(i>=0){view.idx=i;view.tab="month";view.selectedDay=null;view.scrolled=false;render()}}
+function adjustHours(b,dir){const e=getEntry(+b.dataset.y,+b.dataset.m,+b.dataset.d),step=+state.settings.hourStep||.5,cur=Number(e.hours)||0;e.hours=Math.max(0,Math.round((cur+dir*step)*100)/100);if(e.hours===0)e.hours=null;save();render()}
+function setHours(i){const e=getEntry(+i.dataset.y,+i.dataset.m,+i.dataset.d),v=i.value.trim().replace(",",".");e.hours=v===""?null:Math.max(0,Number(v)||0);save();render()}
+function bindSettings(){
+  const w=document.getElementById("weekdayRate"),we=document.getElementById("weekendRate"),hs=document.getElementById("hourStep");
+  if(w)w.onchange=()=>{state.settings.weekdayRate=Math.max(0,+w.value||0);save();render()};
+  if(we)we.onchange=()=>{state.settings.weekendRate=Math.max(0,+we.value||0);save();render()};
+  if(hs)hs.onchange=()=>{state.settings.hourStep=Math.max(.1,+hs.value||.5);save();render()};
+  const a=document.getElementById("saveHtml");if(a)a.onclick=downloadHtmlSnapshot;
+  const j=document.getElementById("exportJson");if(j)j.onclick=exportJson;
+  const ij=document.getElementById("importJson");if(ij)ij.onclick=()=>document.getElementById("fileInput").click();
+  const fi=document.getElementById("fileInput");if(fi)fi.onchange=importJson;
+  const c=document.getElementById("exportCsv");if(c)c.onclick=exportCsv;
+  const r=document.getElementById("resetFactory");if(r)r.onclick=resetFactory;
+  const ia=document.getElementById("installApp");if(ia){
+    ia.disabled=isStandaloneMode();
+    ia.textContent=isStandaloneMode()?"Приложение установлено":"Установить на телефон";
+    ia.onclick=installPwa;
+  }
+}
+function downloadBlob(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+function exportJson(){save();downloadBlob(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),`hours_2026-27_backup_${new Date().toISOString().slice(0,10)}.json`);toast("Резервная копия создана")}
+function importJson(ev){
+  const f=ev.target.files&&ev.target.files[0];if(!f)return;
+  const rd=new FileReader();rd.onload=()=>{try{const x=JSON.parse(rd.result);if(!x.settings||!x.entries)throw new Error();state=normalizeState(x);save();render();toast("Данные восстановлены для учебного года 2026/27.")}catch(e){alert("Не удалось прочитать резервную копию")}};
+  rd.readAsText(f);ev.target.value="";
+}
+function exportCsv(){
+  const lines=[["Дата","День недели","Часы","Ставка","Сумма"]];
+  PERIOD.forEach(p=>{for(let d=1;d<=daysIn(p.y,p.m);d++){
+    const e=getEntry(p.y,p.m,d),h=e.hours??"";if(h==="")continue;
+    const inf=dateInfo(p.y,p.m,d);lines.push([key(p.y,p.m,d),WD_FULL[inf.wd],h,rateFor(p.y,p.m,d),dayAmount(p.y,p.m,d)]);
+  }});
+  const csv="\uFEFF"+lines.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";")).join("\r\n");
+  downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),"hours_2026-27.csv");toast("CSV создан");
+}
+function resetFactory(){if(!confirm("Вернуть часы и настройки к исходным данным? Заполненными останутся только сентябрь и октябрь, остальные месяцы будут пустыми. Текущие изменения будут потеряны."))return;state=clone(FACTORY);save();view.idx=initialMonthIndex();view.tab="today";view.selectedDay=null;render();toast("Исходные данные восстановлены")}
+function downloadHtmlSnapshot(){
+  save();
+  const cloneDoc=document.documentElement.cloneNode(true),app=cloneDoc.querySelector("#app");if(app)app.innerHTML="";
+  const emb=cloneDoc.querySelector("#embedded-data"),snap=clone(state);snap.updatedAt=new Date().toISOString();emb.textContent=JSON.stringify(snap).replace(/</g,"\\u003c");
+  const toastEl=cloneDoc.querySelector("#toast");if(toastEl){toastEl.className="toast";toastEl.textContent=""}
+  const out="<!DOCTYPE html>\n"+cloneDoc.outerHTML;
+  downloadBlob(new Blob([out],{type:"text/html;charset=utf-8"}),`Учёт_часов_2026-27_${new Date().toISOString().slice(0,10)}.html`);toast("HTML с текущими данными создан");
+}
+function scrollTodayOnce(){if(view.scrolled)return;requestAnimationFrame(()=>{const el=document.querySelector(".day-row.today");if(el){el.scrollIntoView({block:"center"});view.scrolled=true}})}
+render();
+</script>
+</body>
+</html>
