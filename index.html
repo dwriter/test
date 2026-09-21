@@ -170,6 +170,38 @@ button{cursor:pointer}
 .pwa-status{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#f8fafc;color:var(--muted);font-size:13px;line-height:1.45}
 .pwa-status strong{color:var(--ink)}
 .install-btn:disabled{opacity:.55;cursor:default}
+
+/* v9: multi-year, work templates, chart and month lock */
+.brand-controls{display:flex;align-items:center;gap:8px}
+.year-picker{height:36px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 9px;font-weight:800;color:var(--ink)}
+.work-tue{background:#fff7e6}
+.work-wed{background:#ecfeff}
+.work-sat{background:#fff7ed}
+.template-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:10px}
+.template-item{display:grid;grid-template-columns:1fr 95px;align-items:center;gap:10px;padding:9px 10px;border:1px solid #edf1f5;border-radius:12px;background:#fafcff}
+.template-item span{font-weight:750}
+.template-item small{display:block;color:var(--muted);font-size:11px;font-weight:500;margin-top:2px}
+.template-item input{width:100%;height:38px;border:1px solid var(--line);border-radius:9px;text-align:center;font-weight:800}
+.template-apply{width:100%;margin-top:10px;min-height:46px;border:1px solid #bfdbfe;border-radius:13px;background:#eff6ff;color:#1d4ed8;font-weight:850}
+.lock-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;margin-bottom:12px;border:1px solid #fde68a;background:#fffbeb;border-radius:13px}
+.lock-banner strong{display:block;font-size:13px}.lock-banner span{display:block;color:#92400e;font-size:12px;margin-top:2px}
+.lock-btn{min-height:40px;border:1px solid #f59e0b;background:#fff7ed;color:#9a3412;border-radius:11px;padding:8px 12px;font-weight:800;white-space:nowrap}
+.month-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 13px;margin-top:10px;box-shadow:var(--shadow)}
+.month-tools .text strong{display:block}.month-tools .text span{font-size:12px;color:var(--muted);display:block;margin-top:3px}
+.chart-card{margin-top:10px;padding:12px 12px 8px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.chart-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px}.chart-head strong{font-size:14px}.chart-head span{font-size:12px;color:var(--muted)}
+.income-chart{width:100%;height:auto;display:block;overflow:visible}
+.chart-empty{padding:32px 10px;text-align:center;color:var(--muted);font-size:13px}
+.year-list{display:grid;gap:8px;margin-top:10px}.year-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border:1px solid #edf1f5;border-radius:12px;background:#fafcff}.year-row.active{border-color:#bfdbfe;background:#eff6ff}.year-row strong{font-size:14px}.year-row span{font-size:12px;color:var(--muted)}
+.locked-field{opacity:.62}
+button:disabled,input:disabled{cursor:not-allowed;opacity:.55}
+.summary-lock{font-size:12px;margin-left:5px}
+@media (max-width:700px){
+  .brand{align-items:flex-start}.brand-controls{flex-direction:column;align-items:flex-end;gap:3px}.year-picker{height:34px;max-width:112px}
+  .template-grid{grid-template-columns:1fr}.month-tools{align-items:flex-start;flex-direction:column}.month-tools button{width:100%}
+  .lock-banner{align-items:flex-start;flex-direction:column}.lock-banner .lock-btn{width:100%}
+}
+
 </style>
 </head>
 <body>
@@ -182,410 +214,298 @@ button{cursor:pointer}
 const MONTHS=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 const WD=["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
 const WD_FULL=["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
-const PERIOD=[{y:2026,m:9},{y:2026,m:10},{y:2026,m:11},{y:2026,m:12},{y:2027,m:1},{y:2027,m:2},{y:2027,m:3},{y:2027,m:4},{y:2027,m:5},{y:2027,m:6}];
+const TEMPLATE_ORDER=[1,2,3,4,5,6,0];
+const LEGACY_STORAGE_KEY="hoursTracker:income-hours-sep-oct-2026-v3";
 const FACTORY_RAW=JSON.parse(document.getElementById("factory-data").textContent);
 const EMBEDDED_RAW=JSON.parse(document.getElementById("embedded-data").textContent);
 
 function clone(o){return JSON.parse(JSON.stringify(o))}
 function key(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`}
+function monthKey(y,m){return `${y}-${String(m).padStart(2,"0")}`}
 function daysIn(y,m){return new Date(y,m,0).getDate()}
-function normalizeState(raw){
-  raw=raw||{};
-  const s=raw.settings||{}, src=raw.entries||{}, clean={};
-  PERIOD.forEach(p=>{for(let d=1;d<=daysIn(p.y,p.m);d++){
-    const k=key(p.y,p.m,d), val=src[k]&&src[k].hours;
+function academicId(startYear){return `${startYear}-${String((startYear+1)%100).padStart(2,"0")}`}
+function academicLabel(startYear){return `${startYear}/${String((startYear+1)%100).padStart(2,"0")}`}
+function makePeriod(startYear){
+  return [9,10,11,12].map(m=>({y:startYear,m})).concat([1,2,3,4,5,6].map(m=>({y:startYear+1,m})));
+}
+function inferStartYear(y,m){return m>=9?y:y-1}
+function blankYear(startYear){
+  const entries={};
+  makePeriod(startYear).forEach(p=>{for(let d=1;d<=daysIn(p.y,p.m);d++)entries[key(p.y,p.m,d)]={hours:null}});
+  return {startYear,entries,closedMonths:{}};
+}
+function normalizeTemplates(raw){
+  const defaults={"0":5,"1":6,"2":0,"3":0,"4":5,"5":6,"6":0}, out={};
+  for(let wd=0;wd<=6;wd++){
+    const v=raw&&raw[String(wd)]!==undefined?Number(raw[String(wd)]):defaults[String(wd)];
+    out[String(wd)]=Number.isFinite(v)&&v>=0?v:defaults[String(wd)];
+  }
+  return out;
+}
+function normalizeYear(raw,startYear){
+  const yr=blankYear(startYear), src=(raw&&raw.entries)||{};
+  Object.keys(yr.entries).forEach(k=>{
+    const val=src[k]&&src[k].hours;
     const n=(val===null||val===""||typeof val==="undefined")?null:Number(val);
-    clean[k]={hours:Number.isFinite(n)&&n>0?n:null};
-  }});
-  return {
-    version:2,
-    appId:"income-hours-sep-oct-2026-v3",
-    updatedAt:raw.updatedAt||"1970-01-01T00:00:00.000Z",
-    settings:{
-      weekdayRate:Math.max(0,Number(s.weekdayRate)||1900),
-      weekendRate:Math.max(0,Number(s.weekendRate)||2100),
-      hourStep:Math.max(.1,Number(s.hourStep)||.5)
-    },
-    entries:clean
+    yr.entries[k]={hours:Number.isFinite(n)&&n>0?n:null};
+  });
+  const closed=(raw&&raw.closedMonths)||{};
+  yr.closedMonths={};
+  makePeriod(startYear).forEach(p=>{const mk=monthKey(p.y,p.m);if(closed[mk])yr.closedMonths[mk]=true});
+  return yr;
+}
+function normalizeState(raw){
+  raw=raw||{};const s=raw.settings||{};
+  const settings={
+    weekdayRate:Math.max(0,Number(s.weekdayRate)||1900),
+    weekendRate:Math.max(0,Number(s.weekendRate)||2100),
+    hourStep:Math.max(.1,Number(s.hourStep)||.5),
+    templates:normalizeTemplates(s.templates)
   };
+  const years={};
+  if(raw.version>=3&&raw.years&&typeof raw.years==="object"){
+    Object.keys(raw.years).forEach(id=>{
+      const r=raw.years[id]||{};const sy=Number(r.startYear)||Number(String(id).slice(0,4));
+      if(Number.isInteger(sy)&&sy>=2000&&sy<=2100)years[academicId(sy)]=normalizeYear(r,sy);
+    });
+  }else{
+    const sy=2026, legacy={entries:raw.entries||{},closedMonths:{}};
+    years[academicId(sy)]=normalizeYear(legacy,sy);
+  }
+  if(!Object.keys(years).length)years[academicId(2026)]=blankYear(2026);
+  const sorted=Object.keys(years).sort((a,b)=>years[a].startYear-years[b].startYear);
+  const active=years[raw.activeYear]?raw.activeYear:(years[academicId(2026)]?academicId(2026):sorted[0]);
+  return {version:3,appId:"income-hours-multiyear-v1",updatedAt:raw.updatedAt||"1970-01-01T00:00:00.000Z",settings,activeYear:active,years};
 }
 const FACTORY=normalizeState(FACTORY_RAW);
 const EMBEDDED=normalizeState(EMBEDDED_RAW);
-const storageKey="hoursTracker:"+EMBEDDED.appId;
+const storageKey=LEGACY_STORAGE_KEY;
 let state=loadState();
 let view={tab:"today",idx:initialMonthIndex(),scrolled:false,selectedDay:null};
+
+function activeYearData(){return state.years[state.activeYear]}
+function activeStartYear(){return activeYearData().startYear}
+function activePeriod(){return makePeriod(activeStartYear())}
+function sortedYearIds(){return Object.keys(state.years).sort((a,b)=>state.years[a].startYear-state.years[b].startYear)}
+function yearIdForDate(y,m){return academicId(inferStartYear(y,m))}
+function isDateInActiveYear(y,m){return yearIdForDate(y,m)===state.activeYear && activePeriod().some(p=>p.y===y&&p.m===m)}
 
 let deferredInstallPrompt=null;
 function isStandaloneMode(){return window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true}
 function pwaInstallStatusHtml(){
   if(isStandaloneMode())return "<strong>Установлено.</strong> Приложение запускается отдельно от браузера и продолжает работать офлайн.";
   if(deferredInstallPrompt)return "<strong>Готово к установке.</strong> Нажмите кнопку выше — появится системное окно установки.";
-  if(location.protocol==="file:")return "Для установки PWA откройте эту же папку как HTTPS-сайт (например, через GitHub Pages). Обычный локальный HTML продолжит работать, но установить его как PWA нельзя.";
-  return "Если системное окно не появляется, откройте меню браузера и выберите «Установить приложение» или «Добавить на главный экран». После первого открытия приложение сможет работать офлайн.";
+  if(location.protocol==="file:")return "Для установки PWA откройте эту же папку как HTTPS-сайт (например, через GitHub Pages).";
+  return "Если системное окно не появляется, откройте меню браузера и выберите «Установить приложение» или «Добавить на главный экран».";
 }
 async function installPwa(){
   if(isStandaloneMode()){toast("Приложение уже установлено");return}
-  if(deferredInstallPrompt){
-    deferredInstallPrompt.prompt();
-    try{await deferredInstallPrompt.userChoice}catch(e){}
-    deferredInstallPrompt=null;
-    render();
-    return;
-  }
-  alert("Если браузер не показал окно автоматически: откройте меню Chrome → «Установить приложение» или «Добавить на главный экран». Для установки страница должна быть открыта по HTTPS.");
+  if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch(e){}deferredInstallPrompt=null;render();return}
+  alert("Откройте меню Chrome → «Установить приложение» или «Добавить на главный экран». Для установки страница должна быть открыта по HTTPS.");
 }
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;const s=document.getElementById("pwaStatus");if(s)s.innerHTML=pwaInstallStatusHtml();const b=document.getElementById("installApp");if(b)b.disabled=false});
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;render()});
 window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;toast("Приложение установлено");render()});
 if("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost" || location.hostname==="127.0.0.1")){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 }
 
 function loadState(){
-  let local=null;
-  try{local=JSON.parse(localStorage.getItem(storageKey)||"null")}catch(e){}
-  if(local && new Date(local.updatedAt||0)>=new Date(EMBEDDED.updatedAt||0)) return normalizeState(local);
+  let local=null;try{local=JSON.parse(localStorage.getItem(storageKey)||"null")}catch(e){}
+  if(local){
+    const l=normalizeState(local);
+    if(new Date(local.updatedAt||0)>=new Date(EMBEDDED_RAW.updatedAt||0))return l;
+  }
   return clone(EMBEDDED);
 }
-function save(){
-  state.updatedAt=new Date().toISOString();
-  try{localStorage.setItem(storageKey,JSON.stringify(state));setSaveState("Сохранено")}catch(e){setSaveState("Только в этой сессии")}
-}
+function save(){state.updatedAt=new Date().toISOString();try{localStorage.setItem(storageKey,JSON.stringify(state));setSaveState("Сохранено")}catch(e){setSaveState("Только в этой сессии")}}
 function setSaveState(t){const el=document.querySelector(".save-state");if(el)el.textContent=t}
-function toast(t){
-  const el=document.getElementById("toast");el.textContent=t;el.classList.add("show");
-  clearTimeout(window.__tt);window.__tt=setTimeout(()=>el.classList.remove("show"),1800);
-}
+function toast(t){const el=document.getElementById("toast");el.textContent=t;el.classList.add("show");clearTimeout(window.__tt);window.__tt=setTimeout(()=>el.classList.remove("show"),1900)}
 function getEntry(y,m,d){
-  const k=key(y,m,d);
-  if(!state.entries[k])state.entries[k]={hours:null};
-  return state.entries[k];
+  const yr=activeYearData(),k=key(y,m,d);if(!yr.entries[k])yr.entries[k]={hours:null};return yr.entries[k];
 }
 function dateInfo(y,m,d){const dt=new Date(y,m-1,d,12);return {dt,wd:dt.getDay()}}
 function rateFor(y,m,d){const wd=dateInfo(y,m,d).wd;return wd===0||wd===6?+state.settings.weekendRate||0:+state.settings.weekdayRate||0}
 function dayAmount(y,m,d){const h=Number(getEntry(y,m,d).hours);return Number.isFinite(h)&&h>0?h*rateFor(y,m,d):0}
+function templateHoursFor(y,m,d){return Number(state.settings.templates[String(dateInfo(y,m,d).wd)]||0)}
+function isMonthClosed(y,m){return !!activeYearData().closedMonths[monthKey(y,m)]}
+function ensureEditable(y,m){if(isMonthClosed(y,m)){toast("Месяц закрыт. Сначала разблокируйте его.");return false}return true}
 function monthStats(y,m,cutoff=null){
   let hours=0,amount=0,weekdayHours=0,weekendHours=0,workedDays=0;
   for(let d=1;d<=daysIn(y,m);d++){
     if(cutoff!==null&&d>cutoff)break;
     const h=Number(getEntry(y,m,d).hours);
-    if(Number.isFinite(h)&&h>0){
-      hours+=h;amount+=h*rateFor(y,m,d);workedDays++;
-      const wd=dateInfo(y,m,d).wd;
-      if(wd===0||wd===6)weekendHours+=h;else weekdayHours+=h;
-    }
+    if(Number.isFinite(h)&&h>0){hours+=h;amount+=h*rateFor(y,m,d);workedDays++;const wd=dateInfo(y,m,d).wd;if(wd===0||wd===6)weekendHours+=h;else weekdayHours+=h}
   }
   return {hours,amount,weekdayHours,weekendHours,workedDays};
 }
 function monthProgressInfo(y,m){
-  const now=new Date(), total=daysIn(y,m);
-  const target=new Date(y,m-1,1,12), current=new Date(now.getFullYear(),now.getMonth(),1,12);
-  if(target<current)return {pct:100,label:`${total} из ${total} дней`};
-  if(target>current)return {pct:0,label:`0 из ${total} дней`};
-  const elapsed=Math.min(now.getDate(),total);
-  return {pct:Math.round(elapsed/total*100),label:`${elapsed} из ${total} дней`};
+  const now=new Date(),total=daysIn(y,m),target=new Date(y,m-1,1,12),current=new Date(now.getFullYear(),now.getMonth(),1,12);
+  if(target<current)return {pct:100,label:`${total} из ${total} дней`};if(target>current)return {pct:0,label:`0 из ${total} дней`};
+  const elapsed=Math.min(now.getDate(),total);return {pct:Math.round(elapsed/total*100),label:`${elapsed} из ${total} дней`};
 }
 function periodStats(cutToday=false){
   const now=new Date();let hours=0,amount=0,weekdayHours=0,weekendHours=0;
-  PERIOD.forEach(p=>{
-    if(cutToday){
-      const first=new Date(p.y,p.m-1,1,12),curFirst=new Date(now.getFullYear(),now.getMonth(),1,12);
-      if(first>curFirst)return;
-      const cutoff=(p.y===now.getFullYear()&&p.m===now.getMonth()+1)?now.getDate():null;
-      const s=monthStats(p.y,p.m,cutoff);hours+=s.hours;amount+=s.amount;weekdayHours+=s.weekdayHours;weekendHours+=s.weekendHours;
-    }else{const s=monthStats(p.y,p.m);hours+=s.hours;amount+=s.amount;weekdayHours+=s.weekdayHours;weekendHours+=s.weekendHours}
-  });
-  return {hours,amount,weekdayHours,weekendHours};
+  activePeriod().forEach(p=>{
+    if(cutToday){const first=new Date(p.y,p.m-1,1,12),curFirst=new Date(now.getFullYear(),now.getMonth(),1,12);if(first>curFirst)return;const cutoff=(p.y===now.getFullYear()&&p.m===now.getMonth()+1)?now.getDate():null;const s=monthStats(p.y,p.m,cutoff);hours+=s.hours;amount+=s.amount;weekdayHours+=s.weekdayHours;weekendHours+=s.weekendHours}
+    else{const s=monthStats(p.y,p.m);hours+=s.hours;amount+=s.amount;weekdayHours+=s.weekdayHours;weekendHours+=s.weekendHours}
+  });return {hours,amount,weekdayHours,weekendHours};
 }
 function periodStatsThroughDate(y,m,d){
   let hours=0,amount=0,weekdayHours=0,weekendHours=0;
-  for(const p of PERIOD){
-    const cur=new Date(p.y,p.m-1,1,12),target=new Date(y,m-1,1,12);
-    if(cur>target)break;
-    const cutoff=(p.y===y&&p.m===m)?d:null;
-    const s=monthStats(p.y,p.m,cutoff);hours+=s.hours;amount+=s.amount;weekdayHours+=s.weekdayHours;weekendHours+=s.weekendHours;
-  }
-  return {hours,amount,weekdayHours,weekendHours};
+  for(const p of activePeriod()){
+    const cur=new Date(p.y,p.m-1,1,12),target=new Date(y,m-1,1,12);if(cur>target)break;
+    const cutoff=(p.y===y&&p.m===m)?d:null,s=monthStats(p.y,p.m,cutoff);hours+=s.hours;amount+=s.amount;weekdayHours+=s.weekdayHours;weekendHours+=s.weekendHours;
+  }return {hours,amount,weekdayHours,weekendHours};
 }
 function todayAmountFor(y,m){
   const now=new Date(),target=new Date(y,m-1,1,12),cur=new Date(now.getFullYear(),now.getMonth(),1,12);
-  if(target>cur)return {hours:0,amount:0,weekdayHours:0,weekendHours:0};
-  if(target<cur)return monthStats(y,m);
-  return monthStats(y,m,now.getDate());
+  if(target>cur)return {hours:0,amount:0,weekdayHours:0,weekendHours:0};if(target<cur)return monthStats(y,m);return monthStats(y,m,now.getDate());
 }
 function rub(v){return new Intl.NumberFormat("ru-RU",{maximumFractionDigits:0}).format(Math.round(v))+" ₽"}
+function rubShort(v){if(v>=1000000)return new Intl.NumberFormat("ru-RU",{maximumFractionDigits:1}).format(v/1000000)+" млн";if(v>=1000)return new Intl.NumberFormat("ru-RU",{maximumFractionDigits:0}).format(v/1000)+" тыс.";return String(Math.round(v))}
 function num(v){return new Intl.NumberFormat("ru-RU",{maximumFractionDigits:1}).format(v)}
-function initialMonthIndex(){const n=new Date(),i=PERIOD.findIndex(p=>p.y===n.getFullYear()&&p.m===n.getMonth()+1);return i>=0?i:0}
+function initialMonthIndex(){const n=new Date(),p=activePeriod(),i=p.findIndex(x=>x.y===n.getFullYear()&&x.m===n.getMonth()+1);return i>=0?i:0}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
+function yearOptionsHtml(){return sortedYearIds().map(id=>`<option value="${id}" ${id===state.activeYear?"selected":""}>${academicLabel(state.years[id].startYear)}</option>`).join("")}
 
 function render(){
   const app=document.getElementById("app");
   const main=view.tab==="today"?todayView():view.tab==="month"?(view.selectedDay?selectedDayView():monthView()):view.tab==="summary"?summaryView():settingsView();
-  app.innerHTML=`<div class="shell">
-    <div class="topbar">
-      <div class="brand"><h1>Учёт часов <span style="font-weight:600;color:var(--muted)">· 2026/27</span></h1><div class="save-state">Сохранено</div></div>
-      ${view.tab==="month"&&!view.selectedDay?monthNav():""}
-    </div>
-    <main>${main}</main>
-  </div>
-  <nav class="tabs">
-    <button class="tab-btn ${view.tab==="today"?"active":""}" data-tab="today">Сегодня</button>
-    <button class="tab-btn ${view.tab==="month"?"active":""}" data-tab="month">Месяц</button>
-    <button class="tab-btn ${view.tab==="summary"?"active":""}" data-tab="summary">Свод</button>
-    <button class="tab-btn ${view.tab==="settings"?"active":""}" data-tab="settings">Настройки</button>
-  </nav>`;
-  bind();
-  if(view.tab==="month")scrollTodayOnce();
+  app.innerHTML=`<div class="shell"><div class="topbar"><div class="brand"><h1>Учёт часов</h1><div class="brand-controls"><select id="yearPicker" class="year-picker" aria-label="Учебный год">${yearOptionsHtml()}</select><div class="save-state">Сохранено</div></div></div>${view.tab==="month"&&!view.selectedDay?monthNav():""}</div><main>${main}</main></div>
+  <nav class="tabs"><button class="tab-btn ${view.tab==="today"?"active":""}" data-tab="today">Сегодня</button><button class="tab-btn ${view.tab==="month"?"active":""}" data-tab="month">Месяц</button><button class="tab-btn ${view.tab==="summary"?"active":""}" data-tab="summary">Свод</button><button class="tab-btn ${view.tab==="settings"?"active":""}" data-tab="settings">Настройки</button></nav>`;
+  bind();if(view.tab==="month"&&!view.selectedDay)scrollTodayOnce();
 }
 function todayView(){
-  const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1,d=now.getDate();
-  const idx=PERIOD.findIndex(p=>p.y===y&&p.m===m);
-  if(idx<0){
-    return `<section class="card outside-period"><h2>Сегодня вне учебного года</h2><p>Приложение охватывает учебный год с сентября 2026 по июнь 2027. Данные можно открыть во вкладках «Месяц» и «Свод».</p><button class="primary" id="openCurrentPeriod">Открыть данные</button></section>`;
-  }
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1,d=now.getDate(),todayId=yearIdForDate(y,m);
+  if(m===7||m===8)return `<section class="card outside-period"><h2>Летний перерыв</h2><p>Июль и август не входят в учебный год. Выберите нужный год сверху и откройте данные через «Месяц» или «Свод».</p></section>`;
+  if(!state.years[todayId])return `<section class="card outside-period"><h2>Для сегодняшней даты ещё нет учебного года</h2><p>Создайте ${academicLabel(inferStartYear(y,m))} в настройках, чтобы вести учёт.</p><button class="primary" id="createTodayYear">Создать учебный год</button></section>`;
+  if(state.activeYear!==todayId)return `<section class="card outside-period"><h2>Сегодня относится к ${academicLabel(state.years[todayId].startYear)}</h2><p>Сейчас выбран ${academicLabel(activeStartYear())}. Переключиться на учебный год сегодняшней даты?</p><button class="primary" id="switchTodayYear" data-year="${todayId}">Перейти к сегодняшнему дню</button></section>`;
   return dayCardView(y,m,d,true);
 }
-function selectedDayView(){
-  const s=view.selectedDay;
-  if(!s)return monthView();
-  return dayCardView(s.y,s.m,s.d,false);
-}
+function selectedDayView(){const s=view.selectedDay;return s?dayCardView(s.y,s.m,s.d,false):monthView()}
 function dayCardView(y,m,d,isToday){
-  const e=getEntry(y,m,d),h=Number(e.hours)||0,rate=rateFor(y,m,d),amount=dayAmount(y,m,d);
-  const inf=dateInfo(y,m,d),monthTo=monthStats(y,m,d,d),full=monthStats(y,m),period=periodStatsThroughDate(y,m,d);
-  const dateLabel=`${WD_FULL[inf.wd]}, ${d} ${MONTHS[m-1].toLowerCase()} ${y}`;
+  const e=getEntry(y,m,d),h=Number(e.hours)||0,rate=rateFor(y,m,d),amount=dayAmount(y,m,d),inf=dateInfo(y,m,d),monthTo=monthStats(y,m,d),full=monthStats(y,m),period=periodStatsThroughDate(y,m,d);
+  const dateLabel=`${WD_FULL[inf.wd]}, ${d} ${MONTHS[m-1].toLowerCase()} ${y}`,closed=isMonthClosed(y,m),tpl=templateHoursFor(y,m,d),disabled=closed?"disabled":"";
   const badge=isToday?`<div class="today-badge">Сегодня</div>`:`<div class="today-badge" style="background:#2563eb">Выбранный день</div>`;
-  const eyebrow=isToday?"Быстрый ввод":"Редактирование дня";
-  const hoursLabel=isToday?"Отработано сегодня":"Отработано за день";
-  const incomeLabel=isToday?"Доход сегодня":"Доход за день";
-  const rightAction=isToday
-    ? `<button class="today-secondary" id="openTodayMonth">Открыть месяц</button>`
-    : `<button class="today-secondary" id="backToMonth">← Назад к месяцу</button>`;
+  const rightAction=isToday?`<button class="today-secondary" id="openTodayMonth">Открыть месяц</button>`:`<button class="today-secondary" id="backToMonth">← Назад к месяцу</button>`;
   return `<div class="today-dashboard">
-    <section class="card today-card">
-      <div class="today-date"><div><div class="eyebrow">${eyebrow}</div><h2>${dateLabel}</h2></div>${badge}</div>
-      <div class="today-hours-block">
-        <div class="today-hours-label">${hoursLabel}</div>
-        <div class="today-hours-value"><strong>${num(h)}</strong><span>ч</span></div>
-        <input class="today-input" data-action="hours" data-y="${y}" data-m="${m}" data-d="${d}" type="number" inputmode="decimal" min="0" step="${state.settings.hourStep||0.5}" value="${e.hours??""}" placeholder="0">
-        <div class="quick-buttons">
-          <button class="quick-btn sub" data-quick-delta="-1" data-y="${y}" data-m="${m}" data-d="${d}">−1 ч</button>
-          <button class="quick-btn sub" data-quick-delta="-0.5" data-y="${y}" data-m="${m}" data-d="${d}">−0,5 ч</button>
-          <button class="quick-btn add" data-quick-delta="0.5" data-y="${y}" data-m="${m}" data-d="${d}">+0,5 ч</button>
-          <button class="quick-btn add" data-quick-delta="1" data-y="${y}" data-m="${m}" data-d="${d}">+1 ч</button>
-        </div>
-        <div class="preset-label">Быстро установить часы</div>
-        <div class="hour-presets">
-          ${[6,7,8,9,10].map(v=>`<button class="preset-btn ${h===v?"active":""}" data-preset-hours="${v}" data-y="${y}" data-m="${m}" data-d="${d}">${v}</button>`).join("")}
-        </div>
+    ${closed?`<div class="lock-banner"><div><strong>🔒 ${MONTHS[m-1]} закрыт</strong><span>Часы защищены от случайных изменений.</span></div><button class="lock-btn" data-toggle-month-lock="1" data-y="${y}" data-m="${m}">Разблокировать месяц</button></div>`:""}
+    <section class="card today-card ${closed?"locked-field":""}">
+      <div class="today-date"><div><div class="eyebrow">${isToday?"Быстрый ввод":"Редактирование дня"}</div><h2>${dateLabel}</h2></div>${badge}</div>
+      <div class="today-hours-block"><div class="today-hours-label">${isToday?"Отработано сегодня":"Отработано за день"}</div><div class="today-hours-value"><strong>${num(h)}</strong><span>ч</span></div>
+        <input class="today-input" data-action="hours" data-y="${y}" data-m="${m}" data-d="${d}" type="number" inputmode="decimal" min="0" step="${state.settings.hourStep||0.5}" value="${e.hours??""}" placeholder="0" ${disabled}>
+        <div class="quick-buttons"><button class="quick-btn sub" data-quick-delta="-1" data-y="${y}" data-m="${m}" data-d="${d}" ${disabled}>−1 ч</button><button class="quick-btn sub" data-quick-delta="-0.5" data-y="${y}" data-m="${m}" data-d="${d}" ${disabled}>−0,5 ч</button><button class="quick-btn add" data-quick-delta="0.5" data-y="${y}" data-m="${m}" data-d="${d}" ${disabled}>+0,5 ч</button><button class="quick-btn add" data-quick-delta="1" data-y="${y}" data-m="${m}" data-d="${d}" ${disabled}>+1 ч</button></div>
+        <div class="preset-label">Быстро установить часы</div><div class="hour-presets">${[6,7,8,9,10].map(v=>`<button class="preset-btn ${h===v?"active":""}" data-preset-hours="${v}" data-y="${y}" data-m="${m}" data-d="${d}" ${disabled}>${v}</button>`).join("")}</div>
+        ${tpl>0?`<button class="template-apply" data-template-day="1" data-y="${y}" data-m="${m}" data-d="${d}" ${disabled}>Как обычно · ${num(tpl)} ч</button>`:`<div class="note" style="margin-top:10px">По шаблону ${WD_FULL[inf.wd].toLowerCase()} — нерабочий день.</div>`}
       </div>
-      <div class="today-income">
-        <div class="today-income-box"><div class="label">${incomeLabel}</div><div class="value">${rub(amount)}</div></div>
-        <div class="today-income-box"><div class="label">Ставка</div><div class="value">${rub(rate)}/ч</div></div>
-      </div>
-      <div class="today-actions">
-        <button class="today-secondary" data-clear-day="1" data-y="${y}" data-m="${m}" data-d="${d}">Очистить часы</button>
-        ${rightAction}
-      </div>
+      <div class="today-income"><div class="today-income-box"><div class="label">${isToday?"Доход сегодня":"Доход за день"}</div><div class="value">${rub(amount)}</div></div><div class="today-income-box"><div class="label">Ставка</div><div class="value">${rub(rate)}/ч</div></div></div>
+      <div class="today-actions"><button class="today-secondary" data-clear-day="1" data-y="${y}" data-m="${m}" data-d="${d}" ${disabled}>Очистить часы</button>${rightAction}</div>
     </section>
-    <section class="card today-month-card">
-      <div class="today-progress-head"><strong>${MONTHS[m-1]} ${y}</strong><span>свод по ${d} число</span></div>
-      <div class="today-progress-grid">
-        <div class="today-mini"><div class="label">По этот день</div><div class="value">${rub(monthTo.amount)}</div></div>
-        <div class="today-mini"><div class="label">Будни</div><div class="value">${num(monthTo.weekdayHours)} ч</div></div>
-        <div class="today-mini"><div class="label">Выходные</div><div class="value">${num(monthTo.weekendHours)} ч</div></div>
-      </div>
-    </section>
-    <section class="card today-month-card">
-      <div class="today-progress-head"><strong>Месяц целиком</strong><span>по заполненным значениям</span></div>
-      <div class="today-progress-grid">
-        <div class="today-mini"><div class="label">Всего часов</div><div class="value">${num(full.hours)} ч</div></div>
-        <div class="today-mini"><div class="label">Будни</div><div class="value">${num(full.weekdayHours)} ч</div></div>
-        <div class="today-mini"><div class="label">Выходные</div><div class="value">${num(full.weekendHours)} ч</div></div>
-      </div>
-      <div class="today-progress-grid" style="margin-top:8px">
-        <div class="today-mini"><div class="label">Сумма месяца</div><div class="value">${rub(full.amount)}</div></div>
-        <div class="today-mini"><div class="label">После этого дня</div><div class="value">${num(Math.max(0,full.hours-monthTo.hours))} ч</div></div>
-        <div class="today-mini"><div class="label">За период</div><div class="value">${rub(period.amount)}</div></div>
-      </div>
-    </section>
+    <section class="card today-month-card"><div class="today-progress-head"><strong>${MONTHS[m-1]} ${y}</strong><span>свод по ${d} число</span></div><div class="today-progress-grid"><div class="today-mini"><div class="label">По этот день</div><div class="value">${rub(monthTo.amount)}</div></div><div class="today-mini"><div class="label">Будни</div><div class="value">${num(monthTo.weekdayHours)} ч</div></div><div class="today-mini"><div class="label">Выходные</div><div class="value">${num(monthTo.weekendHours)} ч</div></div></div></section>
+    <section class="card today-month-card"><div class="today-progress-head"><strong>Месяц целиком</strong><span>по заполненным значениям</span></div><div class="today-progress-grid"><div class="today-mini"><div class="label">Всего часов</div><div class="value">${num(full.hours)} ч</div></div><div class="today-mini"><div class="label">Будни</div><div class="value">${num(full.weekdayHours)} ч</div></div><div class="today-mini"><div class="label">Выходные</div><div class="value">${num(full.weekendHours)} ч</div></div></div><div class="today-progress-grid" style="margin-top:8px"><div class="today-mini"><div class="label">Сумма месяца</div><div class="value">${rub(full.amount)}</div></div><div class="today-mini"><div class="label">После этого дня</div><div class="value">${num(Math.max(0,full.hours-monthTo.hours))} ч</div></div><div class="today-mini"><div class="label">За период</div><div class="value">${rub(period.amount)}</div></div></div></section>
   </div>`;
 }
-function monthNav(){
-  const p=PERIOD[view.idx];
-  return `<div class="month-nav">
-    <button class="icon-btn" id="prevMonth" ${view.idx===0?"disabled":""}>‹</button>
-    <button class="month-title" id="monthPicker">${MONTHS[p.m-1]} ${p.y}</button>
-    <button class="icon-btn" id="nextMonth" ${view.idx===PERIOD.length-1?"disabled":""}>›</button>
-  </div>`;
+function monthNav(){const p=activePeriod()[view.idx];return `<div class="month-nav"><button class="icon-btn" id="prevMonth" ${view.idx===0?"disabled":""}>‹</button><button class="month-title" id="monthPicker">${MONTHS[p.m-1]} ${p.y}</button><button class="icon-btn" id="nextMonth" ${view.idx===activePeriod().length-1?"disabled":""}>›</button></div>`}
+function dayClassFor(wd,tpl){if(wd===0)return "work-sun";if(tpl<=0)return "off-day";return wd===1?"work-mon":wd===2?"work-tue":wd===3?"work-wed":wd===4?"work-thu":wd===5?"work-fri":"work-sat"}
+function incomeChartSvg(y,m){
+  const n=daysIn(y,m),vals=[];let cum=0,has=false;
+  for(let d=1;d<=n;d++){const a=dayAmount(y,m,d);if(a>0)has=true;cum+=a;vals.push(cum)}
+  if(!has)return `<div class="chart-empty">Пока нет данных для графика.</div>`;
+  const W=660,H=220,L=52,R=14,T=18,B=28,plotW=W-L-R,plotH=H-T-B,max=Math.max(...vals,1),x=d=>L+(d-1)/(n-1)*plotW,yv=v=>T+plotH-(v/max)*plotH;
+  const pts=vals.map((v,i)=>`${x(i+1).toFixed(1)},${yv(v).toFixed(1)}`).join(" "),area=`${L},${T+plotH} ${pts} ${x(n)},${T+plotH}`;
+  const mid=Math.ceil(n/2),half=max/2;
+  return `<svg class="income-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Накопленный доход по дням месяца">
+    <line x1="${L}" y1="${T}" x2="${L}" y2="${T+plotH}" stroke="#dce3ec"/><line x1="${L}" y1="${T+plotH}" x2="${W-R}" y2="${T+plotH}" stroke="#dce3ec"/>
+    <line x1="${L}" y1="${yv(half)}" x2="${W-R}" y2="${yv(half)}" stroke="#edf1f5" stroke-dasharray="4 5"/>
+    <polygon points="${area}" fill="#dbeafe" opacity=".65"/><polyline points="${pts}" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${x(n)}" cy="${yv(vals[n-1])}" r="5" fill="#2563eb"/>
+    <text x="${L-8}" y="${T+4}" text-anchor="end" font-size="11" fill="#6b7280">${rubShort(max)}</text><text x="${L-8}" y="${T+plotH+4}" text-anchor="end" font-size="11" fill="#6b7280">0</text>
+    <text x="${x(1)}" y="${H-7}" text-anchor="middle" font-size="11" fill="#6b7280">1</text><text x="${x(mid)}" y="${H-7}" text-anchor="middle" font-size="11" fill="#6b7280">${mid}</text><text x="${x(n)}" y="${H-7}" text-anchor="middle" font-size="11" fill="#6b7280">${n}</text>
+  </svg>`;
 }
 function monthView(){
-  const p=PERIOD[view.idx],full=monthStats(p.y,p.m),to=todayAmountFor(p.y,p.m),period=periodStats(false);
-  const rows=[],now=new Date();
+  const p=activePeriod()[view.idx],full=monthStats(p.y,p.m),to=todayAmountFor(p.y,p.m),closed=isMonthClosed(p.y,p.m),rows=[],now=new Date();
   for(let d=1;d<=daysIn(p.y,p.m);d++){
-    const inf=dateInfo(p.y,p.m,d),e=getEntry(p.y,p.m,d);
-    const isToday=p.y===now.getFullYear()&&p.m===now.getMonth()+1&&d===now.getDate();
-    const dayClass=inf.wd===1?"work-mon":inf.wd===4?"work-thu":inf.wd===5?"work-fri":inf.wd===0?"work-sun":"off-day";
-    const dayType=(inf.wd===1||inf.wd===4||inf.wd===5||inf.wd===0)?"рабочий":"нерабочий";
-    rows.push(`<div class="day-row ${isToday?"today":""} ${dayClass}" data-date="${key(p.y,p.m,d)}" data-open-day="1" data-y="${p.y}" data-m="${p.m}" data-d="${d}">
-      <div><div class="date-main">${d} ${WD[inf.wd]}</div><div class="date-sub">${dayType}</div></div>
-      <div class="hours-wrap"><div class="hours-control">
-        <button class="small-btn" data-action="minus" data-y="${p.y}" data-m="${p.m}" data-d="${d}">−</button>
-        <input class="hours-input" data-action="hours" data-y="${p.y}" data-m="${p.m}" data-d="${d}" type="number" inputmode="decimal" min="0" step="${state.settings.hourStep||0.5}" value="${e.hours??""}" placeholder="0">
-        <button class="small-btn" data-action="plus" data-y="${p.y}" data-m="${p.m}" data-d="${d}">+</button>
-      </div></div>
-      <div class="sum">${rub(dayAmount(p.y,p.m,d))}<small>${rateFor(p.y,p.m,d)} ₽/ч</small></div>
-    </div>`);
+    const inf=dateInfo(p.y,p.m,d),e=getEntry(p.y,p.m,d),tpl=templateHoursFor(p.y,p.m,d),isToday=p.y===now.getFullYear()&&p.m===now.getMonth()+1&&d===now.getDate(),dayClass=dayClassFor(inf.wd,tpl),dayType=tpl>0?`рабочий · обычно ${num(tpl)} ч`:"нерабочий",disabled=closed?"disabled":"";
+    rows.push(`<div class="day-row ${isToday?"today":""} ${dayClass}" data-open-day="1" data-y="${p.y}" data-m="${p.m}" data-d="${d}"><div><div class="date-main">${d} ${WD[inf.wd]}</div><div class="date-sub">${dayType}</div></div><div class="hours-wrap"><div class="hours-control"><button class="small-btn" data-action="minus" data-y="${p.y}" data-m="${p.m}" data-d="${d}" ${disabled}>−</button><input class="hours-input" data-action="hours" data-y="${p.y}" data-m="${p.m}" data-d="${d}" type="number" inputmode="decimal" min="0" step="${state.settings.hourStep||0.5}" value="${e.hours??""}" placeholder="0" ${disabled}><button class="small-btn" data-action="plus" data-y="${p.y}" data-m="${p.m}" data-d="${d}" ${disabled}>+</button></div></div><div class="sum">${rub(dayAmount(p.y,p.m,d))}<small>${rateFor(p.y,p.m,d)} ₽/ч</small></div></div>`);
   }
   const progress=monthProgressInfo(p.y,p.m),avgDay=full.workedDays?full.amount/full.workedDays:0;
-  return `<section class="month-overview">
-    <div class="month-overview-grid">
-      <div class="kpi"><div class="label">Заработано</div><div class="value">${rub(full.amount)}</div><div class="sub">${full.workedDays} рабочих дней</div></div>
-      <div class="kpi"><div class="label">Всего часов</div><div class="value">${num(full.hours)} ч</div><div class="sub">на сегодня: ${num(to.hours)} ч</div></div>
-      <div class="kpi"><div class="label">Будни</div><div class="value">${num(full.weekdayHours)} ч</div><div class="sub">понедельник–пятница</div></div>
-      <div class="kpi"><div class="label">Выходные</div><div class="value">${num(full.weekendHours)} ч</div><div class="sub">суббота–воскресенье</div></div>
-      <div class="kpi"><div class="label">Средний доход / рабочий день</div><div class="value">${full.workedDays?rub(avgDay):"—"}</div><div class="sub">по дням с внесёнными часами</div></div>
-    </div>
-    <div class="month-progress">
-      <div class="month-progress-head"><span>Прогресс месяца</span><strong>${progress.label} · ${progress.pct}%</strong></div>
-      <div class="month-progress-track"><div class="month-progress-fill" style="width:${progress.pct}%"></div></div>
-    </div>
-  </section>
-  <section class="card days">
-    <div class="day-head"><div>Дата</div><div>Часы</div><div style="text-align:right">Сумма</div></div>
-    ${rows.join("")}
-  </section>`;
+  return `<section class="month-overview"><div class="month-overview-grid"><div class="kpi"><div class="label">Заработано</div><div class="value">${rub(full.amount)}</div><div class="sub">${full.workedDays} рабочих дней</div></div><div class="kpi"><div class="label">Всего часов</div><div class="value">${num(full.hours)} ч</div><div class="sub">на сегодня: ${num(to.hours)} ч</div></div><div class="kpi"><div class="label">Будни</div><div class="value">${num(full.weekdayHours)} ч</div><div class="sub">понедельник–пятница</div></div><div class="kpi"><div class="label">Выходные</div><div class="value">${num(full.weekendHours)} ч</div><div class="sub">суббота–воскресенье</div></div><div class="kpi"><div class="label">Средний доход / рабочий день</div><div class="value">${full.workedDays?rub(avgDay):"—"}</div><div class="sub">по дням с внесёнными часами</div></div></div><div class="month-progress"><div class="month-progress-head"><span>Прогресс месяца</span><strong>${progress.label} · ${progress.pct}%</strong></div><div class="month-progress-track"><div class="month-progress-fill" style="width:${progress.pct}%"></div></div></div></section>
+    <section class="chart-card"><div class="chart-head"><strong>Накопленный доход</strong><span>${rub(full.amount)} за месяц</span></div>${incomeChartSvg(p.y,p.m)}</section>
+    <section class="month-tools"><div class="text"><strong>${closed?"🔒 Месяц закрыт":"Редактирование месяца открыто"}</strong><span>${closed?"Часы можно просматривать, но нельзя случайно изменить.":"После завершения месяца его можно защитить от изменений."}</span></div><button class="${closed?"secondary":"lock-btn"}" data-toggle-month-lock="1" data-y="${p.y}" data-m="${p.m}">${closed?"Разблокировать месяц":"Закрыть месяц"}</button></section>
+    <section class="card days" style="margin-top:10px"><div class="day-head"><div>Дата</div><div>Часы</div><div style="text-align:right">Сумма</div></div>${rows.join("")}</section>`;
 }
 function summaryView(){
-  let totalH=0,totalA=0,totalWeekdayH=0,totalWeekendH=0;const now=new Date();
-  const rows=PERIOD.map((p,i)=>{
-    const s=monthStats(p.y,p.m);totalH+=s.hours;totalA+=s.amount;totalWeekdayH+=s.weekdayHours;totalWeekendH+=s.weekendHours;
-    const isCur=p.y===now.getFullYear()&&p.m===now.getMonth()+1;
-    return `<div class="summary-row ${isCur?"today":""}" data-open-month="${i}"><span>${MONTHS[p.m-1]} ${p.y}</span><strong>${num(s.hours)} ч</strong><strong>${rub(s.amount)}</strong></div>`;
-  });
-  const to=periodStats(true);
-  return `<section class="kpis">
-    <div class="kpi"><div class="label">По сегодня</div><div class="value">${rub(to.amount)}</div><div class="sub">${num(to.hours)} ч</div></div>
-    <div class="kpi"><div class="label">Учебный год</div><div class="value">${rub(totalA)}</div><div class="sub">${num(totalH)} ч</div></div>
-    <div class="kpi"><div class="label">Будни · учебный год</div><div class="value">${num(totalWeekdayH)} ч</div><div class="sub">понедельник–пятница</div></div>
-    <div class="kpi"><div class="label">Выходные · учебный год</div><div class="value">${num(totalWeekendH)} ч</div><div class="sub">суббота–воскресенье</div></div>
-  </section>
-  <div class="section-title">По месяцам</div>
-  <section class="card summary-list">
-    <div class="summary-row header"><span>Месяц</span><strong>Часы</strong><strong>Сумма</strong></div>
-    ${rows.join("")}
-    <div class="summary-row total-row"><span>Итого</span><strong>${num(totalH)} ч</strong><strong>${rub(totalA)}</strong></div>
-  </section>`;
+  let totalH=0,totalA=0,totalWeekdayH=0,totalWeekendH=0;const now=new Date(),period=activePeriod();
+  const rows=period.map((p,i)=>{const s=monthStats(p.y,p.m);totalH+=s.hours;totalA+=s.amount;totalWeekdayH+=s.weekdayHours;totalWeekendH+=s.weekendHours;const isCur=p.y===now.getFullYear()&&p.m===now.getMonth()+1,lock=isMonthClosed(p.y,p.m)?`<span class="summary-lock">🔒</span>`:"";return `<div class="summary-row ${isCur?"today":""}" data-open-month="${i}"><span>${MONTHS[p.m-1]} ${p.y}${lock}</span><strong>${num(s.hours)} ч</strong><strong>${rub(s.amount)}</strong></div>`});
+  const to=periodStats(true);return `<section class="kpis"><div class="kpi"><div class="label">По сегодня</div><div class="value">${rub(to.amount)}</div><div class="sub">${num(to.hours)} ч</div></div><div class="kpi"><div class="label">Учебный год ${academicLabel(activeStartYear())}</div><div class="value">${rub(totalA)}</div><div class="sub">${num(totalH)} ч</div></div><div class="kpi"><div class="label">Будни · учебный год</div><div class="value">${num(totalWeekdayH)} ч</div><div class="sub">понедельник–пятница</div></div><div class="kpi"><div class="label">Выходные · учебный год</div><div class="value">${num(totalWeekendH)} ч</div><div class="sub">суббота–воскресенье</div></div></section><div class="section-title">По месяцам</div><section class="card summary-list"><div class="summary-row header"><span>Месяц</span><strong>Часы</strong><strong>Сумма</strong></div>${rows.join("")}<div class="summary-row total-row"><span>Итого</span><strong>${num(totalH)} ч</strong><strong>${rub(totalA)}</strong></div></section>`;
 }
 function settingsView(){
-  return `<div class="section-title">Расчёт</div><section class="card settings">
-    <div class="form-grid">
-      <div class="field"><label>Будни, ₽/час</label><input id="weekdayRate" type="number" min="0" step="50" value="${esc(state.settings.weekdayRate)}"></div>
-      <div class="field"><label>Выходные, ₽/час</label><input id="weekendRate" type="number" min="0" step="50" value="${esc(state.settings.weekendRate)}"></div>
-      <div class="field"><label>Шаг изменения часов</label><input id="hourStep" type="number" min="0.1" step="0.1" value="${esc(state.settings.hourStep||0.5)}"></div>
-    </div>
-  </section>
-  <div class="section-title">Приложение</div><section class="card settings">
-    <div class="pwa-box">
-      <button class="primary install-btn" id="installApp">Установить на телефон</button>
-      <div class="pwa-status" id="pwaStatus">${pwaInstallStatusHtml()}</div>
-    </div>
-  </section>
-  <div class="section-title">Резервные копии</div><section class="card settings">
-    <div class="actions">
-      <button class="primary" id="saveHtml">Сохранить HTML с данными</button>
-      <button class="secondary" id="exportJson">Скачать копию JSON</button>
-      <button class="secondary" id="importJson">Импортировать JSON</button>
-      <button class="secondary" id="exportCsv">Экспорт CSV</button>
-      <button class="danger" id="resetFactory">Сбросить к исходным данным</button>
-    </div>
-    <input id="fileInput" type="file" accept=".json,application/json" class="hidden">
-    <div class="note"><b>Автосохранение:</b> изменения хранятся в браузере на этом устройстве. Кнопка «Сохранить HTML с данными» создаёт автономную копию для архива. Данные установленного PWA сохраняются локально на телефоне; JSON-копию удобно хранить на Яндекс Диске.</div>
-  </section>`;
+  const templateRows=TEMPLATE_ORDER.map(wd=>`<div class="template-item"><div><span>${WD_FULL[wd]}</span><small>${state.settings.templates[String(wd)]>0?"рабочий день":"нерабочий день"}</small></div><input data-template-setting="${wd}" type="number" min="0" step="0.5" value="${esc(state.settings.templates[String(wd)])}"></div>`).join("");
+  const yearRows=sortedYearIds().map(id=>{const y=state.years[id],s=yearStats(id);return `<div class="year-row ${id===state.activeYear?"active":""}"><div><strong>${academicLabel(y.startYear)}</strong><span>${num(s.hours)} ч · ${rub(s.amount)}</span></div><button class="secondary" data-switch-year="${id}" ${id===state.activeYear?"disabled":""}>${id===state.activeYear?"Выбран":"Открыть"}</button></div>`}).join("");
+  return `<div class="section-title">Расчёт</div><section class="card settings"><div class="form-grid"><div class="field"><label>Будни, ₽/час</label><input id="weekdayRate" type="number" min="0" step="50" value="${esc(state.settings.weekdayRate)}"></div><div class="field"><label>Выходные, ₽/час</label><input id="weekendRate" type="number" min="0" step="50" value="${esc(state.settings.weekendRate)}"></div><div class="field"><label>Шаг изменения часов</label><input id="hourStep" type="number" min="0.1" step="0.1" value="${esc(state.settings.hourStep||0.5)}"></div></div></section>
+  <div class="section-title">Обычная рабочая неделя</div><section class="card settings"><div class="note" style="margin-top:0">Укажите обычное число часов. <b>0</b> означает нерабочий день. В карточке дня появится кнопка «Как обычно».</div><div class="template-grid">${templateRows}</div></section>
+  <div class="section-title">Учебные годы</div><section class="card settings"><div class="year-list">${yearRows}</div><div class="actions"><button class="primary" id="createNextYear">+ Создать следующий учебный год</button><button class="danger" id="resetActiveYear">Сбросить только ${academicLabel(activeStartYear())}</button></div><div class="note">Новый учебный год создаётся пустым и охватывает сентябрь–июнь. Ставки и шаблон недели общие для всех лет.</div></section>
+  <div class="section-title">Приложение</div><section class="card settings"><div class="pwa-box"><button class="primary install-btn" id="installApp">Установить на телефон</button><div class="pwa-status" id="pwaStatus">${pwaInstallStatusHtml()}</div></div></section>
+  <div class="section-title">Резервные копии</div><section class="card settings"><div class="actions"><button class="primary" id="saveHtml">Сохранить HTML с данными</button><button class="secondary" id="exportJson">Скачать копию JSON</button><button class="secondary" id="importJson">Импортировать JSON</button><button class="secondary" id="exportCsv">Экспорт CSV</button></div><input id="fileInput" type="file" accept=".json,application/json" class="hidden"><div class="note"><b>Автосохранение:</b> данные всех учебных лет хранятся локально на этом устройстве. JSON-копия содержит сразу все годы и настройки.</div></section>`;
+}
+function yearStats(id){
+  const prev=state.activeYear;state.activeYear=id;let hours=0,amount=0;for(const p of activePeriod()){const s=monthStats(p.y,p.m);hours+=s.hours;amount+=s.amount}state.activeYear=prev;return {hours,amount};
 }
 function bind(){
   document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{view.tab=b.dataset.tab;view.selectedDay=null;view.scrolled=false;render()});
+  const yp=document.getElementById("yearPicker");if(yp)yp.onchange=()=>switchYear(yp.value);
   const prev=document.getElementById("prevMonth");if(prev)prev.onclick=()=>{if(view.idx>0){view.idx--;view.selectedDay=null;view.scrolled=false;render()}};
-  const next=document.getElementById("nextMonth");if(next)next.onclick=()=>{if(view.idx<PERIOD.length-1){view.idx++;view.selectedDay=null;view.scrolled=false;render()}};
+  const next=document.getElementById("nextMonth");if(next)next.onclick=()=>{if(view.idx<activePeriod().length-1){view.idx++;view.selectedDay=null;view.scrolled=false;render()}};
   const pick=document.getElementById("monthPicker");if(pick)pick.onclick=cycleMonth;
-  document.querySelectorAll('[data-action="plus"],[data-action="minus"]').forEach(b=>b.onclick=(ev)=>{ev.stopPropagation();adjustHours(b,b.dataset.action==="plus"?1:-1)});
-  document.querySelectorAll('[data-action="hours"]').forEach(i=>{
-    i.onclick=ev=>ev.stopPropagation();
-    i.onchange=()=>setHours(i);i.onblur=()=>setHours(i)
-  });
+  document.querySelectorAll('[data-action="plus"],[data-action="minus"]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();adjustHours(b,b.dataset.action==="plus"?1:-1)});
+  document.querySelectorAll('[data-action="hours"]').forEach(i=>{i.onclick=ev=>ev.stopPropagation();i.onchange=()=>setHours(i);i.onblur=()=>setHours(i)});
   document.querySelectorAll('[data-quick-delta]').forEach(b=>b.onclick=()=>adjustHoursBy(+b.dataset.y,+b.dataset.m,+b.dataset.d,+b.dataset.quickDelta));
   document.querySelectorAll('[data-preset-hours]').forEach(b=>b.onclick=()=>setPresetHours(+b.dataset.y,+b.dataset.m,+b.dataset.d,+b.dataset.presetHours));
-  document.querySelectorAll('[data-open-day]').forEach(r=>r.onclick=(ev)=>{
-    if(ev.target.closest('button,input,select'))return;
-    view.selectedDay={y:+r.dataset.y,m:+r.dataset.m,d:+r.dataset.d};
-    view.tab="month";view.scrolled=false;render();window.scrollTo({top:0,behavior:"smooth"});
-  });
+  document.querySelectorAll('[data-template-day]').forEach(b=>b.onclick=()=>applyTemplateDay(+b.dataset.y,+b.dataset.m,+b.dataset.d));
+  document.querySelectorAll('[data-toggle-month-lock]').forEach(b=>b.onclick=()=>toggleMonthLock(+b.dataset.y,+b.dataset.m));
+  document.querySelectorAll('[data-open-day]').forEach(r=>r.onclick=ev=>{if(ev.target.closest('button,input,select'))return;view.selectedDay={y:+r.dataset.y,m:+r.dataset.m,d:+r.dataset.d};view.tab="month";view.scrolled=false;render();window.scrollTo({top:0,behavior:"smooth"})});
   document.querySelectorAll('[data-clear-day]').forEach(b=>b.onclick=()=>clearDayHours(+b.dataset.y,+b.dataset.m,+b.dataset.d));
-  const backToMonth=document.getElementById("backToMonth");if(backToMonth)backToMonth.onclick=()=>{view.selectedDay=null;view.scrolled=false;render()};
-  const openTodayMonth=document.getElementById("openTodayMonth");if(openTodayMonth)openTodayMonth.onclick=openMonthForToday;
-  const openCurrentPeriod=document.getElementById("openCurrentPeriod");if(openCurrentPeriod)openCurrentPeriod.onclick=()=>{view.idx=initialMonthIndex();view.tab="month";view.selectedDay=null;render()};
-  document.querySelectorAll("[data-open-month]").forEach(r=>r.onclick=()=>{view.idx=+r.dataset.openMonth;view.tab="month";view.selectedDay=null;view.scrolled=false;render()});
+  document.querySelectorAll('[data-open-month]').forEach(r=>r.onclick=()=>{view.idx=+r.dataset.openMonth;view.tab="month";view.selectedDay=null;view.scrolled=false;render()});
+  document.querySelectorAll('[data-switch-year]').forEach(b=>b.onclick=()=>switchYear(b.dataset.switchYear));
+  const back=document.getElementById("backToMonth");if(back)back.onclick=()=>{view.selectedDay=null;view.scrolled=false;render()};
+  const otm=document.getElementById("openTodayMonth");if(otm)otm.onclick=openMonthForToday;
+  const sty=document.getElementById("switchTodayYear");if(sty)sty.onclick=()=>switchYear(sty.dataset.year,"today");
+  const cty=document.getElementById("createTodayYear");if(cty)cty.onclick=createYearForToday;
   bindSettings();
 }
-function cycleMonth(){
-  const labels=PERIOD.map((p,i)=>`${i+1}. ${MONTHS[p.m-1]} ${p.y}`).join("\n");
-  const ans=prompt("Введите номер месяца:\n"+labels,String(view.idx+1));
-  const n=Number(ans);if(Number.isInteger(n)&&n>=1&&n<=PERIOD.length){view.idx=n-1;view.scrolled=false;render()}
-}
-function adjustHoursBy(y,m,d,delta){const e=getEntry(y,m,d),cur=Number(e.hours)||0,next=Math.max(0,Math.round((cur+delta)*100)/100);e.hours=next===0?null:next;save();render()}
-function setPresetHours(y,m,d,h){const e=getEntry(y,m,d);e.hours=Math.max(0,Number(h)||0)||null;save();render();toast(`${h} ч установлено`)}
-function clearDayHours(y,m,d){
-  const e=getEntry(y,m,d);
-  if(e.hours===null||typeof e.hours==="undefined")return;
-  if(!confirm(`Очистить часы за ${d} ${MONTHS[m-1].toLowerCase()}?`))return;
-  e.hours=null;save();render();toast("Часы за день очищены");
-}
-function openMonthForToday(){const n=new Date(),i=PERIOD.findIndex(p=>p.y===n.getFullYear()&&p.m===n.getMonth()+1);if(i>=0){view.idx=i;view.tab="month";view.selectedDay=null;view.scrolled=false;render()}}
-function adjustHours(b,dir){const e=getEntry(+b.dataset.y,+b.dataset.m,+b.dataset.d),step=+state.settings.hourStep||.5,cur=Number(e.hours)||0;e.hours=Math.max(0,Math.round((cur+dir*step)*100)/100);if(e.hours===0)e.hours=null;save();render()}
-function setHours(i){const e=getEntry(+i.dataset.y,+i.dataset.m,+i.dataset.d),v=i.value.trim().replace(",",".");e.hours=v===""?null:Math.max(0,Number(v)||0);save();render()}
+function switchYear(id,targetTab=null){if(!state.years[id])return;state.activeYear=id;save();view.idx=initialMonthIndex();view.selectedDay=null;view.scrolled=false;if(targetTab)view.tab=targetTab;render()}
+function cycleMonth(){const period=activePeriod(),labels=period.map((p,i)=>`${i+1}. ${MONTHS[p.m-1]} ${p.y}`).join("\n"),ans=prompt("Введите номер месяца:\n"+labels,String(view.idx+1)),n=Number(ans);if(Number.isInteger(n)&&n>=1&&n<=period.length){view.idx=n-1;view.scrolled=false;render()}}
+function adjustHoursBy(y,m,d,delta){if(!ensureEditable(y,m))return;const e=getEntry(y,m,d),cur=Number(e.hours)||0,next=Math.max(0,Math.round((cur+delta)*100)/100);e.hours=next===0?null:next;save();render()}
+function setPresetHours(y,m,d,h){if(!ensureEditable(y,m))return;getEntry(y,m,d).hours=Math.max(0,Number(h)||0)||null;save();render();toast(`${h} ч установлено`)}
+function applyTemplateDay(y,m,d){if(!ensureEditable(y,m))return;const h=templateHoursFor(y,m,d);if(h<=0){toast("Для этого дня шаблон не задан");return}getEntry(y,m,d).hours=h;save();render();toast(`Установлено как обычно: ${num(h)} ч`)}
+function clearDayHours(y,m,d){if(!ensureEditable(y,m))return;const e=getEntry(y,m,d);if(e.hours===null||typeof e.hours==="undefined")return;if(!confirm(`Очистить часы за ${d} ${MONTHS[m-1].toLowerCase()}?`))return;e.hours=null;save();render();toast("Часы за день очищены")}
+function openMonthForToday(){const n=new Date(),id=yearIdForDate(n.getFullYear(),n.getMonth()+1);if(state.years[id]&&state.activeYear!==id)state.activeYear=id;const i=activePeriod().findIndex(p=>p.y===n.getFullYear()&&p.m===n.getMonth()+1);if(i>=0){view.idx=i;view.tab="month";view.selectedDay=null;view.scrolled=false;save();render()}}
+function adjustHours(b,dir){const y=+b.dataset.y,m=+b.dataset.m,d=+b.dataset.d;if(!ensureEditable(y,m))return;const e=getEntry(y,m,d),step=+state.settings.hourStep||.5,cur=Number(e.hours)||0;e.hours=Math.max(0,Math.round((cur+dir*step)*100)/100);if(e.hours===0)e.hours=null;save();render()}
+function setHours(i){const y=+i.dataset.y,m=+i.dataset.m,d=+i.dataset.d;if(!ensureEditable(y,m)){render();return}const e=getEntry(y,m,d),v=i.value.trim().replace(",",".");e.hours=v===""?null:Math.max(0,Number(v)||0);save();render()}
+function toggleMonthLock(y,m){const mk=monthKey(y,m),closed=isMonthClosed(y,m),action=closed?"Разблокировать":"Закрыть";if(!confirm(`${action} ${MONTHS[m-1].toLowerCase()} ${y}?${closed?" После этого часы снова можно будет менять.":" После закрытия часы будут защищены от случайных изменений."}`))return;if(closed)delete activeYearData().closedMonths[mk];else activeYearData().closedMonths[mk]=true;save();render();toast(closed?"Месяц разблокирован":"Месяц закрыт")}
 function bindSettings(){
-  const w=document.getElementById("weekdayRate"),we=document.getElementById("weekendRate"),hs=document.getElementById("hourStep");
-  if(w)w.onchange=()=>{state.settings.weekdayRate=Math.max(0,+w.value||0);save();render()};
-  if(we)we.onchange=()=>{state.settings.weekendRate=Math.max(0,+we.value||0);save();render()};
-  if(hs)hs.onchange=()=>{state.settings.hourStep=Math.max(.1,+hs.value||.5);save();render()};
-  const a=document.getElementById("saveHtml");if(a)a.onclick=downloadHtmlSnapshot;
-  const j=document.getElementById("exportJson");if(j)j.onclick=exportJson;
-  const ij=document.getElementById("importJson");if(ij)ij.onclick=()=>document.getElementById("fileInput").click();
-  const fi=document.getElementById("fileInput");if(fi)fi.onchange=importJson;
-  const c=document.getElementById("exportCsv");if(c)c.onclick=exportCsv;
-  const r=document.getElementById("resetFactory");if(r)r.onclick=resetFactory;
-  const ia=document.getElementById("installApp");if(ia){
-    ia.disabled=isStandaloneMode();
-    ia.textContent=isStandaloneMode()?"Приложение установлено":"Установить на телефон";
-    ia.onclick=installPwa;
-  }
+  const w=document.getElementById("weekdayRate"),we=document.getElementById("weekendRate"),hs=document.getElementById("hourStep");if(w)w.onchange=()=>{state.settings.weekdayRate=Math.max(0,+w.value||0);save();render()};if(we)we.onchange=()=>{state.settings.weekendRate=Math.max(0,+we.value||0);save();render()};if(hs)hs.onchange=()=>{state.settings.hourStep=Math.max(.1,+hs.value||.5);save();render()};
+  document.querySelectorAll('[data-template-setting]').forEach(i=>i.onchange=()=>{const wd=String(i.dataset.templateSetting);state.settings.templates[wd]=Math.max(0,+String(i.value).replace(",",".")||0);save();render()});
+  const cn=document.getElementById("createNextYear");if(cn)cn.onclick=createNextYear;const ra=document.getElementById("resetActiveYear");if(ra)ra.onclick=resetActiveYear;
+  const a=document.getElementById("saveHtml");if(a)a.onclick=downloadHtmlSnapshot;const j=document.getElementById("exportJson");if(j)j.onclick=exportJson;const ij=document.getElementById("importJson");if(ij)ij.onclick=()=>document.getElementById("fileInput").click();const fi=document.getElementById("fileInput");if(fi)fi.onchange=importJson;const c=document.getElementById("exportCsv");if(c)c.onclick=exportCsv;
+  const ia=document.getElementById("installApp");if(ia){ia.disabled=isStandaloneMode();ia.textContent=isStandaloneMode()?"Приложение установлено":"Установить на телефон";ia.onclick=installPwa}
 }
+function createNextYear(){const maxStart=Math.max(...Object.values(state.years).map(y=>y.startYear)),next=maxStart+1,id=academicId(next);if(state.years[id]){switchYear(id);return}if(!confirm(`Создать пустой учебный год ${academicLabel(next)}?`))return;state.years[id]=blankYear(next);state.activeYear=id;save();view.idx=0;view.tab="month";view.selectedDay=null;render();toast(`Создан ${academicLabel(next)}`)}
+function createYearForToday(){const n=new Date(),sy=inferStartYear(n.getFullYear(),n.getMonth()+1),id=academicId(sy);if(!state.years[id])state.years[id]=blankYear(sy);switchYear(id,"today")}
+function resetActiveYear(){const id=state.activeYear,sy=activeStartYear();if(!confirm(`Сбросить все часы и закрытые месяцы только за ${academicLabel(sy)}? Другие учебные годы останутся без изменений.`))return;const seed=FACTORY.years[id]?clone(FACTORY.years[id]):blankYear(sy);state.years[id]=seed;save();view.idx=initialMonthIndex();view.selectedDay=null;render();toast(`${academicLabel(sy)} сброшен`)}
 function downloadBlob(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
-function exportJson(){save();downloadBlob(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),`hours_2026-27_backup_${new Date().toISOString().slice(0,10)}.json`);toast("Резервная копия создана")}
-function importJson(ev){
-  const f=ev.target.files&&ev.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{try{const x=JSON.parse(rd.result);if(!x.settings||!x.entries)throw new Error();state=normalizeState(x);save();render();toast("Данные восстановлены для учебного года 2026/27.")}catch(e){alert("Не удалось прочитать резервную копию")}};
-  rd.readAsText(f);ev.target.value="";
-}
+function exportJson(){save();downloadBlob(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),`hours_all_years_backup_${new Date().toISOString().slice(0,10)}.json`);toast("Резервная копия создана")}
+function importJson(ev){const f=ev.target.files&&ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const x=JSON.parse(rd.result);const incoming=normalizeState(x);if(!confirm(`Импортировать резервную копию? Текущие данные в приложении будут заменены.`))return;state=incoming;save();view.idx=initialMonthIndex();view.selectedDay=null;render();toast("Резервная копия восстановлена")}catch(e){alert("Не удалось прочитать резервную копию")}};rd.readAsText(f);ev.target.value=""}
 function exportCsv(){
-  const lines=[["Дата","День недели","Часы","Ставка","Сумма"]];
-  PERIOD.forEach(p=>{for(let d=1;d<=daysIn(p.y,p.m);d++){
-    const e=getEntry(p.y,p.m,d),h=e.hours??"";if(h==="")continue;
-    const inf=dateInfo(p.y,p.m,d);lines.push([key(p.y,p.m,d),WD_FULL[inf.wd],h,rateFor(p.y,p.m,d),dayAmount(p.y,p.m,d)]);
-  }});
-  const csv="\uFEFF"+lines.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";")).join("\r\n");
-  downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),"hours_2026-27.csv");toast("CSV создан");
+  const lines=[["Учебный год","Дата","День недели","Часы","Ставка","Сумма"]],prev=state.activeYear;
+  for(const id of sortedYearIds()){state.activeYear=id;for(const p of activePeriod()){for(let d=1;d<=daysIn(p.y,p.m);d++){const e=getEntry(p.y,p.m,d),h=e.hours??"";if(h==="")continue;const inf=dateInfo(p.y,p.m,d);lines.push([academicLabel(activeStartYear()),key(p.y,p.m,d),WD_FULL[inf.wd],h,rateFor(p.y,p.m,d),dayAmount(p.y,p.m,d)])}}}
+  state.activeYear=prev;const csv="\uFEFF"+lines.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";")).join("\r\n");downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),"hours_all_years.csv");toast("CSV создан")
 }
-function resetFactory(){if(!confirm("Вернуть часы и настройки к исходным данным? Заполненными останутся только сентябрь и октябрь, остальные месяцы будут пустыми. Текущие изменения будут потеряны."))return;state=clone(FACTORY);save();view.idx=initialMonthIndex();view.tab="today";view.selectedDay=null;render();toast("Исходные данные восстановлены")}
-function downloadHtmlSnapshot(){
-  save();
-  const cloneDoc=document.documentElement.cloneNode(true),app=cloneDoc.querySelector("#app");if(app)app.innerHTML="";
-  const emb=cloneDoc.querySelector("#embedded-data"),snap=clone(state);snap.updatedAt=new Date().toISOString();emb.textContent=JSON.stringify(snap).replace(/</g,"\\u003c");
-  const toastEl=cloneDoc.querySelector("#toast");if(toastEl){toastEl.className="toast";toastEl.textContent=""}
-  const out="<!DOCTYPE html>\n"+cloneDoc.outerHTML;
-  downloadBlob(new Blob([out],{type:"text/html;charset=utf-8"}),`Учёт_часов_2026-27_${new Date().toISOString().slice(0,10)}.html`);toast("HTML с текущими данными создан");
-}
+function downloadHtmlSnapshot(){save();const cloneDoc=document.documentElement.cloneNode(true),app=cloneDoc.querySelector("#app");if(app)app.innerHTML="";const emb=cloneDoc.querySelector("#embedded-data"),snap=clone(state);snap.updatedAt=new Date().toISOString();emb.textContent=JSON.stringify(snap).replace(/</g,"\\u003c");const toastEl=cloneDoc.querySelector("#toast");if(toastEl){toastEl.className="toast";toastEl.textContent=""}const out="<!DOCTYPE html>\n"+cloneDoc.outerHTML;downloadBlob(new Blob([out],{type:"text/html;charset=utf-8"}),`Учёт_часов_${new Date().toISOString().slice(0,10)}.html`);toast("HTML с текущими данными создан")}
 function scrollTodayOnce(){if(view.scrolled)return;requestAnimationFrame(()=>{const el=document.querySelector(".day-row.today");if(el){el.scrollIntoView({block:"center"});view.scrolled=true}})}
 render();
+
 </script>
 </body>
 </html>
