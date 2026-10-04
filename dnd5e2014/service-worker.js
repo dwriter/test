@@ -1,0 +1,5 @@
+const CACHE='dnd5e2014-player-v1.0.1';
+const ASSETS=['./', './index.html', './manifest.json', './css/app.css', './js/loader.js', './js/bundle-01.part', './js/bundle-02.part', './js/bundle-03.part', './js/bundle-04.part', './js/bundle-05.part', './js/bundle-06.part', './js/bundle-07.part'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(resp=>{const copy=resp.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return resp;}).catch(()=>caches.match('./index.html'))));});
