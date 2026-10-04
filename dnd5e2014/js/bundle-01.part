@@ -1,0 +1,110 @@
+(async()=>{
+
+// ---- rules.js ----
+const ABILITIES = ['str','dex','con','int','wis','cha'];
+const SKILLS = {
+  acrobatics:'dex', animalHandling:'wis', arcana:'int', athletics:'str', deception:'cha',
+  history:'int', insight:'wis', intimidation:'cha', investigation:'int', medicine:'wis',
+  nature:'int', perception:'wis', performance:'cha', persuasion:'cha', religion:'int',
+  sleightOfHand:'dex', stealth:'dex', survival:'wis'
+};
+const SKILL_LABELS = {
+  acrobatics:'Acrobatics', animalHandling:'Animal Handling', arcana:'Arcana', athletics:'Athletics', deception:'Deception',
+  history:'History', insight:'Insight', intimidation:'Intimidation', investigation:'Investigation', medicine:'Medicine',
+  nature:'Nature', perception:'Perception', performance:'Performance', persuasion:'Persuasion', religion:'Religion',
+  sleightOfHand:'Sleight of Hand', stealth:'Stealth', survival:'Survival'
+};
+const FIGHTER_SKILLS = ['acrobatics','animalHandling','athletics','history','insight','intimidation','perception','survival'];
+
+function abilityModifier(score){ return Math.floor((Number(score)-10)/2); }
+function proficiencyBonus(totalLevel){ return 2 + Math.floor((Math.max(1, Number(totalLevel))-1)/4); }
+function totalLevel(character){ return (character.progression?.classes || []).reduce((s,c)=>s+Number(c.level||0),0) || 1; }
+function effectiveAbilityScore(character, ability){
+  const base = Number(character.abilities?.base?.[ability] ?? 10);
+  let bonus = 0;
+  if (character.identity?.raceId === 'human-standard') bonus += 1;
+  for (const effect of activeEffects(character)) {
+    for (const op of effect.operations || []) {
+      if (op.target === `ability.${ability}` && op.operation === 'add') bonus += Number(op.value||0);
+    }
+  }
+  return base + bonus;
+}
+function abilityBreakdown(character, ability){
+  const base = Number(character.abilities?.base?.[ability] ?? 10);
+  const parts=[{label:'Base',value:base}];
+  if(character.identity?.raceId==='human-standard') parts.push({label:'Human',value:1});
+  for(const e of activeEffects(character)) for(const op of e.operations||[]) if(op.target===`ability.${ability}`&&op.operation==='add') parts.push({label:e.name||'Effect',value:Number(op.value||0)});
+  return {value: parts.reduce((s,p)=>s+p.value,0), breakdown:parts};
+}
+function getAbilityModifier(character, ability){ return abilityModifier(effectiveAbilityScore(character,ability)); }
+function getProficiencyBonus(character){ return proficiencyBonus(totalLevel(character)); }
+
+function saveModifier(character, ability){
+  const mod = getAbilityModifier(character, ability);
+  const proficient = (character.proficiencies?.savingThrows || []).includes(ability);
+  let extra = 0;
+  for(const e of activeEffects(character)) for(const op of e.operations||[]) if(op.target===`save.${ability}`&&op.operation==='add') extra+=Number(op.value||0);
+  return mod + (proficient?getProficiencyBonus(character):0) + extra;
+}
+function skillModifier(character, skill){
+  const ability=SKILLS[skill];
+  let v=getAbilityModifier(character,ability);
+  const rank=character.proficiencies?.skills?.[skill] || 0; // 0 none, 1 proficiency, 2 expertise
+  if(rank===1) v+=getProficiencyBonus(character);
+  if(rank>=2) v+=getProficiencyBonus(character)*2;
+  for(const e of activeEffects(character)) for(const op of e.operations||[]) if(op.target===`skill.${skill}`&&op.operation==='add') v+=Number(op.value||0);
+  return v;
+}
+function passivePerception(character){ return 10 + skillModifier(character,'perception'); }
+
+function activeEffects(character){ return (character.effects || []).filter(e=>e.active!==false); }
+function hasCondition(character,id){ return (character.conditions||[]).some(c=>c.id===id); }
+
+function advantageState(character, kind){
+  const advantage=[]; const disadvantage=[];
+  if(hasCondition(character,'poisoned') && (kind==='attack'||kind==='abilityCheck')) disadvantage.push('Poisoned');
+  for(const e of activeEffects(character)){
+    for(const op of e.operations||[]){
+      if(op.target!==kind && op.target!=='allD20') continue;
+      if(op.operation==='advantage') advantage.push(e.name||'Effect');
+      if(op.operation==='disadvantage') disadvantage.push(e.name||'Effect');
+    }
+  }
+  const mode=advantage.length && disadvantage.length ? 'normal' : advantage.length ? 'advantage' : disadvantage.length ? 'disadvantage' : 'normal';
+  return {mode,advantage,disadvantage};
+}
+
+function armorClass(character){
+  const dex=getAbilityModifier(character,'dex');
+  const inv=character.inventory?.items || [];
+  const armor=inv.find(i=>i.equipped && i.category==='armor');
+  const shield=inv.find(i=>i.equipped && i.id==='shield');
+  let value=10+dex; const breakdown=[];
+  if(armor){
+    if(armor.armorType==='heavy'){ value=armor.baseAC; breakdown.push({label:armor.name,value:armor.baseAC}); }
+    else if(armor.armorType==='medium'){ const d=Math.min(2,dex); value=armor.baseAC+d; breakdown.push({label:armor.name,value:armor.baseAC},{label:'DEX (max +2)',value:d}); }
+    else { value=armor.baseAC+dex; breakdown.push({label:armor.name,value:armor.baseAC},{label:'DEX',value:dex}); }
+  } else breakdown.push({label:'Base',value:10},{label:'DEX',value:dex});
+  if(shield){value+=2; breakdown.push({label:'Shield',value:2});}
+  for(const e of activeEffects(character)) for(const op of e.operations||[]) if(op.target==='ac'&&op.operation==='add'){value+=Number(op.value||0); breakdown.push({label:e.name||'Effect',value:Number(op.value||0)});}
+  return {value,breakdown};
+}
+function speed(character){
+  let v=30;
+  const armor=(character.inventory?.items||[]).find(i=>i.equipped&&i.category==='armor');
+  if(armor?.strRequirement && effectiveAbilityScore(character,'str')<armor.strRequirement) v-=10;
+  for(const e of activeEffects(character)) for(const op of e.operations||[]) if(op.target==='speed.walk'&&op.operation==='add') v+=Number(op.value||0);
+  return Math.max(0,v);
+}
+function initiative(character){
+  let v=getAbilityModifier(character,'dex');
+  for(const e of activeEffects(character)) for(const op of e.operations||[]) if(op.target==='initiative'&&op.operation==='add') v+=Number(op.value||0);
+  return v;
+}
+function maxHP(character){
+  const fighter=(character.progression?.classes||[]).find(c=>c.classId==='fighter');
+  if(!fighter) return character.health?.maxHPBase || 1;
+  const lvl=Number(fighter.level||1); const con=getAbilityModifier(character,'con');
+  if(lvl===1) return Math.max(1,10+con);
+  return Math.max(1, Number(character.health?.maxHPBase || (10+con + (lv
