@@ -1,7 +1,18 @@
-# D&D 5e 2014 Player — Core v3
+# D&D 5e 2014 Player — Core v4.1
 
-Offline-first PWA for D&D 5e (2014).
+Offline mobile-first PWA for D&D 5e (2014 rules).
 
-Core v3 adds Wizard and Cleric levels 1–5, spell slots, preparation/spellbook workflows, spell attack and save DC, upcasting, ritual casting, concentration checks, Arcane Recovery tracking, Life Domain healing, and schema-v3 migration while preserving the Fighter/death/rest systems from Core v2.
+## Core v4.1
+- Data-driven 2014 race/subrace choices in Character Creator
+- Human, Hill/Mountain Dwarf, High/Wood/Drow Elf, Lightfoot/Stout Halfling, Dragonborn ancestry, Forest/Rock Gnome, Half-Elf, Half-Orc, Tiefling
+- Automatic racial ability increases, walking speed, racial skill proficiencies and supported damage resistances
+- Dragonborn ancestry resistance choice
+- Half-Elf flexible +1 ability choices and Skill Versatility choices
+- Basic Rules backgrounds: Acolyte, Criminal/Spy, Folk Hero, Noble, Sage, Soldier
+- Custom Background with two skill proficiencies
+- Duplicate background proficiency replacement handling
+- Background/racial features shown on Character Sheet
+- Schema v4 migration for existing Core v1–v3 saves
 
-Built-in spell content is intentionally a curated SRD subset; contextual effects remain manual where the app does not know the table state.
+## Existing systems retained
+Fighter/Wizard/Cleric 1–5, spellcasting, concentration, rests, death saves, rules calculations, IndexedDB autosave, import/export, Undo and offline PWA.

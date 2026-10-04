@@ -4,10 +4,11 @@
 @media (prefers-color-scheme:light){:root{color-scheme:light;--bg:#f5f1ea;--panel:#fff;--panel2:#eee8de;--text:#242321;--muted:#69655f;--accent:#8c4a37;--accent2:#8c4a37;--line:#d8d0c5;--shadow:0 8px 24px rgba(70,50,30,.08)}.topbar,.bottomnav{background:rgba(245,241,234,.95)}}
 .status-line{margin-top:12px;padding:10px 12px;border-radius:12px;text-align:center;font-weight:800;letter-spacing:.05em;background:rgba(255,255,255,.08)}
 .low-hp{outline:1px solid rgba(227,108,108,.45)}.zero-hp,.dead{outline:2px solid var(--danger)}.death-card{border:1px solid rgba(227,108,108,.55)}.death-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.death-row:last-of-type{border-bottom:0}.danger-text{color:var(--danger)}.good-text{color:var(--good)}
-
 .spell-card{padding:13px 0;border-bottom:1px solid var(--line)}
 .spell-card:last-child{border-bottom:0}
 .spell-card p{margin:8px 0}
 .slot-strip{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .spell-choice-list{display:grid;gap:8px;max-height:320px;overflow:auto;margin:8px 0 12px}
 .prepared-count{position:sticky;top:0;background:var(--panel);padding:8px 0;z-index:1;color:var(--muted)}
+.status-line{margin-top:12px;padding:10px 12px;border-radius:12px;text-align:center;font-weight:800;letter-spacing:.05em;background:rgba(255,255,255,.08)}
+.danger-text{color:var(--danger)}.good-text{color:var(--good)}
