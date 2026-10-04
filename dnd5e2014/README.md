@@ -1,33 +1,7 @@
-# D&D 5e 2014 Player — Core v2
+# D&D 5e 2014 Player — Core v3
 
-Mobile-first offline PWA for D&D 5e (2014 rules).
+Offline-first PWA for D&D 5e (2014).
 
-## Core v2 implemented
-- Standard Human Fighter creation
-- Standard Array, Point Buy, manual scores, 4d6 drop lowest
-- Fighter skill choices and all six 2014 Fighting Styles
-- Fighter levels 1–5
-- Second Wind and Action Surge resources
-- Champion at level 3 with Improved Critical (19–20)
-- Ability Score Improvement at Fighter 4
-- Extra Attack at Fighter 5
-- AC, skills, saves, initiative, attacks and calculation breakdowns
-- Damage, healing, temporary HP
-- 0 HP / Unconscious state, Death Saves, damage at 0 HP, Instant Death
-- Short Rest with Hit Dice spent one at a time
-- Long Rest preview and resource/Hit Dice restoration
-- Conditions, dice roller, action history, Undo
-- IndexedDB autosave, JSON import/export, schema migration from Core v1
-- PWA service worker and offline cache
+Core v3 adds Wizard and Cleric levels 1–5, spell slots, preparation/spellbook workflows, spell attack and save DC, upcasting, ritual casting, concentration checks, Arcane Recovery tracking, Life Domain healing, and schema-v3 migration while preserving the Fighter/death/rest systems from Core v2.
 
-## Still planned
-Spellcasting, concentration workflow, spell slots, Wizard/Cleric, multiclass, full SRD reference, content packs, fuller inventory and effects UI.
-
-## Run locally
-Use an HTTP server (service workers do not run from `file://`):
-
-```bash
-python -m http.server 8080
-```
-
-Then open `http://localhost:8080`.
+Built-in spell content is intentionally a curated SRD subset; contextual effects remain manual where the app does not know the table state.
