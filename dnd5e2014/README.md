@@ -1,18 +1,19 @@
-# D&D 5e 2014 Player — Core v4.1
+# D&D 5e 2014 Player — Core v4.2
 
 Offline mobile-first PWA for D&D 5e (2014 rules).
 
-## Core v4.1
-- Data-driven 2014 race/subrace choices in Character Creator
-- Human, Hill/Mountain Dwarf, High/Wood/Drow Elf, Lightfoot/Stout Halfling, Dragonborn ancestry, Forest/Rock Gnome, Half-Elf, Half-Orc, Tiefling
-- Automatic racial ability increases, walking speed, racial skill proficiencies and supported damage resistances
-- Dragonborn ancestry resistance choice
-- Half-Elf flexible +1 ability choices and Skill Versatility choices
-- Basic Rules backgrounds: Acolyte, Criminal/Spy, Folk Hero, Noble, Sage, Soldier
-- Custom Background with two skill proficiencies
-- Duplicate background proficiency replacement handling
-- Background/racial features shown on Character Sheet
-- Schema v4 migration for existing Core v1–v3 saves
+## Core v4.2
+- Data-driven 2014 race/subrace and Basic Rules background creator
+- Fighter, Wizard, Cleric levels 1–5
+- Barbarian, Rogue and Monk level 1
+- Barbarian Rage + Unarmored Defense
+- Rogue 4 class skills + two Expertise choices + Sneak Attack reference
+- Monk Unarmored Defense + Martial Arts d4 attacks
+- Race ability bonuses, speed, supported resistances, racial skills and background skills
+- Half-Elf choices and Dragonborn ancestry resistance
+- Background duplicate proficiency replacement and Custom Background skills
+- Spellcasting, concentration, rests, death saves, rules calculations
+- Schema v4 migration, IndexedDB autosave, JSON import/export, Undo and offline PWA
 
-## Existing systems retained
-Fighter/Wizard/Cleric 1–5, spellcasting, concentration, rests, death saves, rules calculations, IndexedDB autosave, import/export, Undo and offline PWA.
+## Next
+Continue Character Creator with the remaining 2014 classes, then complete equipment choice coverage and creator review/validation.
