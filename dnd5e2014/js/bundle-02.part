@@ -1,0 +1,98 @@
+l-1)*(6+con))));
+}
+
+function weaponAttack(character,item){
+  const pb=getProficiencyBonus(character);
+  let ability='str';
+  if(item.finesse){ const sm=getAbilityModifier(character,'str'), dm=getAbilityModifier(character,'dex'); ability = dm>sm?'dex':'str'; }
+  if(item.ranged) ability='dex';
+  const mod=getAbilityModifier(character,ability);
+  let attackBonus=mod+(item.proficient===false?0:pb);
+  let damageMod=mod;
+  for(const e of activeEffects(character)) for(const op of e.operations||[]){ if(op.target==='attackBonus'&&op.operation==='add') attackBonus+=Number(op.value||0); if(op.target==='damage'&&op.operation==='add') damageMod+=Number(op.value||0); }
+  return {name:item.name,attackBonus,damageDice:item.damageDice,damageModifier:damageMod,damageType:item.damageType,ability,properties:item.properties||[]};
+}
+function attacks(character){ return (character.inventory?.items||[]).filter(i=>i.category==='weapon'&&i.equipped).map(i=>weaponAttack(character,i)); }
+
+function concentrationDC(damage){ return Math.max(10,Math.floor(Number(damage)/2)); }
+function pointBuyCost(score){ const map={8:0,9:1,10:2,11:3,12:4,13:5,14:7,15:9}; return map[score] ?? Infinity; }
+function pointBuyTotal(scores){ return ABILITIES.reduce((s,a)=>s+pointBuyCost(Number(scores[a])),0); }
+function validatePointBuy(scores){
+  const invalid=ABILITIES.filter(a=>Number(scores[a])<8||Number(scores[a])>15||!Number.isInteger(Number(scores[a])));
+  const cost=pointBuyTotal(scores);
+  return {valid:invalid.length===0&&cost===27,cost,remaining:27-cost,invalid};
+}
+
+function applyDamage(character, amount, damageType='untyped'){
+  amount=Math.max(0,Math.floor(Number(amount)||0));
+  let final=amount; const notes=[];
+  if((character.defenses?.immunities||[]).includes(damageType)){final=0;notes.push(`Immunity: ${damageType}`);}
+  else {
+    if((character.defenses?.resistances||[]).includes(damageType)){final=Math.floor(final/2);notes.push(`Resistance: ${damageType}`);}
+    if((character.defenses?.vulnerabilities||[]).includes(damageType)){final=final*2;notes.push(`Vulnerability: ${damageType}`);}
+  }
+  const beforeTemp=character.health.temporaryHP||0; const beforeHP=character.health.currentHP;
+  const absorbed=Math.min(beforeTemp,final); character.health.temporaryHP=beforeTemp-absorbed; final-=absorbed;
+  character.health.currentHP=Math.max(0,beforeHP-final);
+  return {raw:amount,finalToHP:final,absorbedByTemp:absorbed,beforeTemp,afterTemp:character.health.temporaryHP,beforeHP,afterHP:character.health.currentHP,notes};
+}
+function applyHealing(character, amount){
+  amount=Math.max(0,Math.floor(Number(amount)||0)); const before=character.health.currentHP; const max=maxHP(character);
+  character.health.currentHP=Math.min(max,before+amount); return {before,after:character.health.currentHP,amount:character.health.currentHP-before,max};
+}
+function grantTemporaryHP(character, amount){ amount=Math.max(0,Math.floor(Number(amount)||0)); const before=character.health.temporaryHP||0; if(amount>before) character.health.temporaryHP=amount; return {before,after:character.health.temporaryHP,accepted:amount>before}; }
+
+function formatSigned(n){ return n>=0?`+${n}`:`${n}`; }
+
+// ---- dice.js ----
+function randInt(max){
+  if(globalThis.crypto?.getRandomValues){ const a=new Uint32Array(1); globalThis.crypto.getRandomValues(a); return (a[0]%max)+1; }
+  return Math.floor(Math.random()*max)+1;
+}
+function rollDie(sides){ sides=Number(sides); if(![4,6,8,10,12,20,100].includes(sides)) throw new Error('Unsupported die'); return randInt(sides); }
+function rollD20(mode='normal'){
+  if(mode==='normal'){const r=rollDie(20);return {mode,rolls:[r],kept:r,total:r,natural:r};}
+  const a=rollDie(20),b=rollDie(20); const kept=mode==='advantage'?Math.max(a,b):Math.min(a,b); return {mode,rolls:[a,b],kept,total:kept,natural:kept};
+}
+function parseExpression(expr){
+  const clean=String(expr).toLowerCase().replace(/\s+/g,'');
+  if(!clean) throw new Error('Empty expression');
+  const normalized=clean.replace(/-/g,'+-'); const parts=normalized.split('+').filter(Boolean);
+  const terms=parts.map(p=>{
+    const m=p.match(/^(-?)(\d*)d(4|6|8|10|12|20|100)$/);
+    if(m) return {type:'dice',sign:m[1]==='-'?-1:1,count:Number(m[2]||1),sides:Number(m[3])};
+    if(/^[-+]?\d+$/.test(p)) return {type:'flat',value:Number(p)};
+    throw new Error(`Invalid term: ${p}`);
+  });
+  if(terms.some(t=>t.type==='dice'&&(t.count<1||t.count>100))) throw new Error('Dice count must be 1–100');
+  return terms;
+}
+function rollExpression(expr){
+  const terms=parseExpression(expr); let total=0; const detail=[];
+  for(const t of terms){
+    if(t.type==='flat'){ total+=t.value; detail.push({type:'flat',value:t.value}); continue; }
+    const rolls=Array.from({length:t.count},()=>rollDie(t.sides)); const subtotal=rolls.reduce((s,x)=>s+x,0)*t.sign; total+=subtotal; detail.push({...t,rolls,subtotal});
+  }
+  return {expression:expr,total,detail};
+}
+function rollDamage(dice, modifier=0, critical=false){
+  const terms=parseExpression(dice); const detail=[]; let total=0;
+  for(const t of terms){
+    if(t.type==='flat') continue;
+    const count=t.count*(critical?2:1); const rolls=Array.from({length:count},()=>rollDie(t.sides)); const subtotal=rolls.reduce((s,x)=>s+x,0)*t.sign; total+=subtotal; detail.push({...t,count,rolls,subtotal});
+  }
+  total+=Number(modifier||0); return {dice,modifier:Number(modifier||0),critical,total,detail};
+}
+
+// ---- character.js ----
+
+const uid=()=>globalThis.crypto?.randomUUID?.() || `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const STANDARD_ARRAY=[15,14,13,12,10,8];
+
+const STARTER_WEAPONS={
+  longsword:{id:'longsword',name:'Longsword',category:'weapon',damageDice:'1d8',damageType:'slashing',weight:3,properties:['versatile 1d10'],equipped:true},
+  rapier:{id:'rapier',name:'Rapier',category:'weapon',damageDice:'1d8',damageType:'piercing',weight:2,properties:['finesse'],finesse:true,equipped:true},
+  greatsword:{id:'greatsword',name:'Greatsword',category:'weapon',damageDice:'2d6',damageType:'slashing',weight:6,properties:['heavy','two-handed'],equipped:true},
+  longbow:{id:'longbow',name:'Longbow',category:'weapon',damageDice:'1d8',damageType:'piercing',weight:2,properties:['ammunition','heavy','two-handed','range 150/600'],ranged:true,equipped:true},
+  lightCrossbow:{id:'light-crossbow',name:'Light Crossbow',category:'weapon',damageDice:'1d8',damageType:'piercing',weight:5,properties:['ammunition','loading','two-handed','range 80/320'],ranged:true,equipped:true}
+};
