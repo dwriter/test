@@ -1,26 +1,31 @@
-# D&D 5e 2014 Player — Core v4.6
+# D&D 5e 2014 Player — Core v4.7
 
 Offline mobile-first PWA for D&D 5e (2014 rules).
 
-## Core v4.6
-- Barbarian levels 1–5: Reckless Attack, Danger Sense, Path of the Berserker, Frenzy, ASI, Extra Attack and Fast Movement
-- Rogue levels 1–5: Cunning Action, Thief, Sneak Attack scaling, ASI and Uncanny Dodge
-- Monk levels 1–5: Ki, Flurry of Blows, Patient Defense, Step of the Wind, Unarmored Movement, Way of the Open Hand, Deflect Missiles, Slow Fall, Extra Attack and Stunning Strike
-- Monk Martial Arts die scales to d6 at level 5
-- Ki resource restores on Short or Long Rest
-- Barbarian Rage maximum increases at level 3
-- Level-up UI and summaries for these classes
+## Core v4.7
+- Paladin levels 1–5
+  - Fighting Style, Spellcasting, Divine Smite
+  - Oath of Devotion, Channel Divinity, Divine Health
+  - ASI and Extra Attack
+  - Lay on Hands scales with level
+  - CHA-based prepared half-caster slots
+  - Devotion oath spells are always prepared
+- Ranger levels 1–5
+  - Fighting Style and WIS-based half-caster Spellcasting
+  - Known-spell selection and optional spell replacement on level-up
+  - Hunter archetype with Hunter’s Prey choice
+  - Primeval Awareness, ASI and Extra Attack
+- Half-caster slot progression through 2nd-level slots at class level 5
+- Divine Smite combat dialog spends the selected slot and rolls radiant damage
+- Expanded curated SRD spell content for Paladin and Ranger
 
-## Core v4.5 retained
-- Class-specific starting equipment packages for all twelve classes
-- Live Review & Validation during character creation
-- Final racial ability scores, race/class/background, class skills and equipment shown before creation
-- Invalid creator choices block character creation
+## Previous systems retained
+- Fighter, Wizard, Cleric, Barbarian, Rogue and Monk levels 1–5
+- All twelve classes in Character Creator
+- Starting equipment packages and live Review & Validation
+- Spellcasting, concentration, combat, rests, death saves, autosave, Undo, import/export and offline PWA
 
-## Existing systems retained
-Fighter/Wizard/Cleric 1–5; all twelve classes at creation; race/background creator; spellcasting; concentration; combat; rests; death saves; autosave; Undo; import/export; offline PWA.
-
-Context-dependent features such as Reckless Attack timing, Uncanny Dodge target selection, Open Hand Technique and Stunning Strike target saves remain player/DM controlled where the app cannot infer table state.
+Context-dependent features such as Hunter’s Prey triggers, Channel Divinity targets and spell targets remain player/DM controlled where the app cannot infer the table state.
 
 ## Next
-Paladin and Ranger levels 2–5, then Bard/Druid/Sorcerer/Warlock progression, followed by multiclass rules.
+Bard, Druid, Sorcerer and Warlock levels 2–5, then multiclass rules.
