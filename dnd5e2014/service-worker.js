@@ -1,4 +1,4 @@
-const CACHE='dnd5e2014-player-v4.2.0';
+const CACHE='dnd5e2014-player-v4.3.0';
 const ASSETS=["./", "./index.html", "./manifest.json", "./css/app.css", "./js/loader.js", "./js/bundle-gz-01.part", "./js/bundle-gz-02.part", "./js/bundle-gz-03.part", "./js/bundle-gz-04.part", "./js/bundle-gz-05.part", "./js/bundle-gz-06.part", "./js/bundle-gz-07.part", "./js/bundle-gz-08.part", "../icon-192.png", "../icon-512.png"];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
