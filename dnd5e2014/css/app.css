@@ -12,3 +12,6 @@
 .prepared-count{position:sticky;top:0;background:var(--panel);padding:8px 0;z-index:1;color:var(--muted)}
 .status-line{margin-top:12px;padding:10px 12px;border-radius:12px;text-align:center;font-weight:800;letter-spacing:.05em;background:rgba(255,255,255,.08)}
 .danger-text{color:var(--danger)}.good-text{color:var(--good)}
+
+.review-grid{display:grid;gap:10px;margin-top:12px}.review-grid>div{background:var(--panel2);border-radius:12px;padding:10px}.review-errors{margin-top:10px;display:grid;gap:4px}
+@media (min-width:600px){.review-grid{grid-template-columns:1fr 1fr}.review-grid>div:nth-child(3),.review-grid>div:nth-child(5){grid-column:1/-1}}
