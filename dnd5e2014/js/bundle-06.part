@@ -1,0 +1,56 @@
+l" role="dialog"><div class="between row"><span></span><button class="compact ghost" data-modal-act="close">Close</button></div>${body}</div></div>`}
+
+function render(){if(state.screen==='characters')app.innerHTML=charactersScreen();else if(state.screen==='create')app.innerHTML=creatorScreen();else if(state.screen==='sheet')app.innerHTML=sheetScreen();else if(state.screen==='session')app.innerHTML=sessionScreen();else if(state.screen==='combat')app.innerHTML=combatScreen();else app.innerHTML=moreScreen(); bind();}
+
+function openModal(type,data={}){state.modal={type,...data};render()}
+function closeModal(){state.modal=null;render()}
+function d20WithRequestedOrRule(kind,modifier,title){const rule=advantageState(state.active,kind); const r=rollD20(rule.mode); const total=r.kept+modifier; const reasons=[...rule.advantage.map(x=>`Advantage: ${x}`),...rule.disadvantage.map(x=>`Disadvantage: ${x}`)]; openModal('roll',{title,total,detail:`${r.rolls.join(' / ')} ${formatSigned(modifier)} · ${rule.mode}${reasons.length?' · '+reasons.join('; '):''}`}); addLog(state.active,title,`${total}`);persist();}
+
+function bind(){
+  document.querySelectorAll('[data-screen]').forEach(b=>b.onclick=()=>{state.screen=b.dataset.screen;state.modal=null;render()});
+  document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openCharacter(b.dataset.open));
+  document.querySelectorAll('[data-dup]').forEach(b=>b.onclick=async()=>{const c=await getCharacter(b.dataset.dup);await duplicateCharacter(c);await refreshCharacters();render();toast('Duplicated')});
+  document.querySelectorAll('[data-exp]').forEach(b=>b.onclick=async()=>exportCharacter(await getCharacter(b.dataset.exp)));
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>openModal('confirm',{title:'Delete character?',message:'This cannot be undone.',onConfirm:async()=>{await deleteCharacter(b.dataset.del);await refreshCharacters();state.modal=null;render();toast('Deleted')}}));
+  document.querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{
+    const a=b.dataset.act;
+    if(a==='create'){state.screen='create';render()} if(a==='cancel-create'){state.screen='characters';render()}
+    if(a==='home'){state.active=null;state.screen='characters';await refreshCharacters();render()}
+    if(a==='import'){importInput.click()}
+    if(a==='finish-create')finishCreate();
+    if(a==='damage')openModal('damage'); if(a==='heal')openModal('heal'); if(a==='temp-hp')openModal('temp'); if(a==='dice')openModal('dice'); if(a==='conditions')openModal('conditions');
+    if(a==='initiative')d20WithRequestedOrRule('abilityCheck',initiative(state.active),'Initiative');
+    if(a==='undo')undo(); if(a==='export-active')exportCharacter(state.active);
+    if(a==='second-wind')useSecondWind(); if(a==='short-rest')shortRest(); if(a==='long-rest')longRest();
+  });
+  document.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>d20WithRequestedOrRule('savingThrow',saveModifier(state.active,b.dataset.save),`${b.dataset.save.toUpperCase()} Saving Throw`));
+  document.querySelectorAll('[data-skill]').forEach(b=>b.onclick=()=>d20WithRequestedOrRule('abilityCheck',skillModifier(state.active,b.dataset.skill),SKILL_LABELS[b.dataset.skill]));
+  document.querySelectorAll('[data-attack]').forEach(b=>b.onclick=()=>attackRoll(Number(b.dataset.attack)));
+  document.querySelectorAll('[data-breakdown]').forEach(b=>b.onclick=()=>showBreakdown(b.dataset.breakdown));
+  document.querySelectorAll('[data-modal-act]').forEach(b=>b.onclick=e=>modalAction(b.dataset.modalAct,e));
+  document.querySelectorAll('[data-condition]').forEach(b=>b.onclick=()=>toggleCondition(b.dataset.condition));
+  const method=document.querySelector('#c-method'); if(method) method.onchange=()=>changeAbilityMethod(method.value);
+}
+
+function changeAbilityMethod(method){
+  const ed=document.querySelector('#ability-editor'); if(method==='standard')ed.innerHTML=abilityEditor({str:15,dex:14,con:13,int:12,wis:10,cha:8});
+  if(method==='pointBuy')ed.innerHTML=abilityEditor({str:15,dex:14,con:13,int:12,wis:10,cha:8});
+  if(method==='manual')ed.innerHTML=abilityEditor({str:10,dex:10,con:10,int:10,wis:10,cha:10});
+  if(method==='roll'){
+    const scores={}; for(const a of ABILITIES){const rolls=[rollDie(6),rollDie(6),rollDie(6),rollDie(6)].sort((x,y)=>x-y);scores[a]=rolls.slice(1).reduce((s,x)=>s+x,0)} ed.innerHTML=abilityEditor(scores);
+  }
+}
+async function finishCreate(){
+  const abilityScores={};document.querySelectorAll('.ability-input').forEach(i=>abilityScores[i.dataset.ability]=Number(i.value));
+  const skillChoices=[...document.querySelectorAll('input[name="skill"]:checked')].map(i=>i.value);
+  const draft={name:document.querySelector('#c-name').value,playerName:document.querySelector('#c-player').value,abilityScores,skillChoices,armorChoice:document.querySelector('#c-armor').value,weaponChoice:document.querySelector('#c-weapon').value,shield:document.querySelector('#c-shield').checked};
+  const errors=validateCreatorDraft(draft); const method=document.querySelector('#c-method').value; if(method==='pointBuy'){const pb=validatePointBuy(abilityScores); if(!pb.valid) errors.push(`Point Buy must spend exactly 27 points with scores from 8 to 15 (currently ${pb.cost}/27).`)} if(errors.length){document.querySelector('#creator-errors').innerHTML=errors.map(x=>`<p>${esc(x)}</p>`).join('');return;}
+  const c=newFighterCharacter(draft); c.abilities.generationMethod=method; await saveCharacter(c);state.active=c;state.screen='sheet';render();toast('Character saved');
+}
+
+async function modalAction(action,e){
+  if(action==='close'||action==='cancel'){closeModal();return} if(action==='backdrop'&&e.target.classList.contains('modalback')){closeModal();return}
+  if(action==='confirm'){const f=state.modal.onConfirm; if(f)await f();return}
+  if(action==='apply-damage'){const amt=Number(document.querySelector('#m-amount').value),type=document.querySelector('#m-type').value; await mutate('Damage Received',c=>applyDamage(c,amt,type),r=>`${r.raw} ${type}; HP ${r.beforeHP}→${r.afterHP}${r.absorbedByTemp?`; Temp absorbed ${r.absorbedByTemp}`:''}`);state.modal=null;render();return}
+  if(action==='apply-heal'){const amt=Number(document.querySelector('#m-amount').value); await mutate('Healing',c=>applyHealing(c,amt),r=>`HP ${r.before}→${r.after}`);state.modal=null;render();return}
+  if(action==='apply-temp'){const amt=Number(document.querySelector('#m-amount').value); await mutate('Temporary HP',c=>grantTemporaryHP(c,amt),r=>r.ac

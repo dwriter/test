@@ -1,0 +1,73 @@
+const ARMOR={
+  chainMail:{id:'chain-mail',name:'Chain Mail',category:'armor',armorType:'heavy',baseAC:16,strRequirement:13,weight:55,equipped:true},
+  leather:{id:'leather',name:'Leather Armor',category:'armor',armorType:'light',baseAC:11,weight:10,equipped:true},
+  shield:{id:'shield',name:'Shield',category:'armor',armorType:'shield',baseAC:2,weight:6,equipped:true}
+};
+
+function newFighterCharacter({name='Unnamed Hero',playerName='',abilityScores,skillChoices=[],armorChoice='chain',weaponChoice='longsword',shield=true}={}){
+  const base=abilityScores || {str:15,dex:14,con:13,int:12,wis:10,cha:8};
+  const items=[];
+  if(armorChoice==='chain') items.push(structuredClone(ARMOR.chainMail)); else items.push(structuredClone(ARMOR.leather));
+  if(shield) items.push(structuredClone(ARMOR.shield));
+  items.push(structuredClone(STARTER_WEAPONS[weaponChoice]||STARTER_WEAPONS.longsword));
+  items.push(structuredClone(STARTER_WEAPONS.lightCrossbow));
+  const skills={}; for(const s of skillChoices) if(FIGHTER_SKILLS.includes(s)) skills[s]=1;
+  const now=new Date().toISOString();
+  const c={
+    meta:{id:uid(),schemaVersion:1,rulesEdition:'5e-2014',createdAt:now,updatedAt:now,mode:'strict',beginnerMode:true},
+    identity:{name,playerName,raceId:'human-standard',raceName:'Human',backgroundId:'custom',backgroundName:'Custom',alignment:'',notes:''},
+    progression:{classes:[{classId:'fighter',className:'Fighter',level:1,subclassId:null}]},
+    abilities:{base:{...base},generationMethod:'standardArray'},
+    proficiencies:{savingThrows:['str','con'],skills},
+    health:{currentHP:1,maxHPBase:1,temporaryHP:0,hitDice:{d10:{maximum:1,remaining:1}}},
+    defenses:{resistances:[],vulnerabilities:[],immunities:[]},
+    inventory:{items},
+    resources:[{id:'second-wind',name:'Second Wind',current:1,maximum:1,recovery:['shortRest','longRest']}],
+    conditions:[], effects:[], concentration:{active:false,spellId:null}, favorites:[],quickBar:[],
+    history:{entries:[],undoStack:[]}
+  };
+  c.health.maxHPBase=maxHP(c); c.health.currentHP=c.health.maxHPBase;
+  return c;
+}
+
+function validateCreatorDraft(draft){
+  const errors=[];
+  if(!draft.name?.trim()) errors.push('Enter a character name.');
+  if(!draft.skillChoices || draft.skillChoices.length!==2) errors.push('Fighter must choose exactly 2 class skills in Core v1.');
+  if(draft.shield && ['greatsword','longbow'].includes(draft.weaponChoice)) errors.push('A shield cannot be wielded while using the selected two-handed main weapon.');
+  const values=Object.values(draft.abilityScores||{}).map(Number);
+  if(values.length!==6 || values.some(v=>!Number.isFinite(v)||v<3||v>20)) errors.push('Ability scores must be valid numbers.');
+  return errors;
+}
+
+// ---- indexed-db.js ----
+const DB_NAME='dnd5e2014-player-db'; const DB_VERSION=1; const STORE='characters';
+function openDB(){ return new Promise((resolve,reject)=>{ const req=indexedDB.open(DB_NAME,DB_VERSION); req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:'meta.id'});}; req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error); }); }
+async function listCharacters(){ const db=await openDB(); return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readonly');const r=tx.objectStore(STORE).getAll();r.onsuccess=()=>resolve(r.result.sort((a,b)=>String(b.meta.updatedAt).localeCompare(String(a.meta.updatedAt))));r.onerror=()=>reject(r.error);}); }
+async function getCharacter(id){ const db=await openDB(); return new Promise((resolve,reject)=>{const r=db.transaction(STORE,'readonly').objectStore(STORE).get(id);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error);}); }
+async function saveCharacter(c){ c.meta.updatedAt=new Date().toISOString(); const db=await openDB(); return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(c);tx.oncomplete=()=>resolve(c);tx.onerror=()=>reject(tx.error);}); }
+async function deleteCharacter(id){ const db=await openDB(); return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);}); }
+async function duplicateCharacter(c){ const copy=structuredClone(c); copy.meta.id=crypto.randomUUID(); copy.identity.name=`${copy.identity.name} Copy`; copy.meta.createdAt=new Date().toISOString(); copy.history={entries:[],undoStack:[]}; return saveCharacter(copy); }
+
+// ---- import-export.js ----
+function exportCharacter(character){
+  const blob=new Blob([JSON.stringify(character,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`${(character.identity.name||'character').replace(/[^a-z0-9_-]+/gi,'_')}.dnd5e.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function importCharacterFile(file){ const text=await file.text(); const data=JSON.parse(text); if(!data?.meta?.schemaVersion || data?.meta?.rulesEdition!=='5e-2014') throw new Error('Unsupported character file.'); if(!data.meta.id) data.meta.id=crypto.randomUUID(); return data; }
+
+// ---- app.js ----
+
+
+
+
+
+const app=document.querySelector('#app'); const importInput=document.querySelector('#import-file');
+let state={screen:'characters',active:null,characters:[],modal:null};
+const deep=x=>structuredClone(x);
+function toast(msg){const t=document.querySelector('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function esc(s=''){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function fmtTime(iso){try{return new Date(iso).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}catch{return ''}}
+function snapshotMutable(c){return deep({health:c.health,resources:c.resources,conditions:c.conditions,concentration:c.concentration,inventory:c.inventory,effects:c.effects});}
+function pushUndo(c,label){c.history ||= {entries:[],undoStack:[]}; c.history.undoStack ||= []; c.history.undoStack.push({label,before:snapshotMutable(c)}); if(c.history.undoStack.length>20)c.history.undoStack.shift();}
+function addLog(c,label,detail=''){c.history ||= {entries:[],undoStack:[]}; c.history.entries.unshift({id:crypto.randomUUID(),at:new Date().toISOString(),label,detail}); c.history.entries=c.history.entries.slice(0,100);}
+async function persist(msg){if(!state.active)return; await saveCha
