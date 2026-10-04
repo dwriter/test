@@ -1,0 +1,1 @@
+(async()=>{const parts=["js/bundle-01.part", "js/bundle-02.part", "js/bundle-03.part", "js/bundle-04.part", "js/bundle-05.part", "js/bundle-06.part", "js/bundle-07.part"];let code='';for(const p of parts){const r=await fetch(p);if(!r.ok)throw new Error('Failed to load '+p);code+=await r.text();}new Function(code)();})();
