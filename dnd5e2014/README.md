@@ -1,31 +1,26 @@
-# D&D 5e 2014 Player — Core v4.7
+# D&D 5e 2014 Player — Core v4.8
 
 Offline mobile-first PWA for D&D 5e (2014 rules).
 
-## Core v4.7
-- Paladin levels 1–5
-  - Fighting Style, Spellcasting, Divine Smite
-  - Oath of Devotion, Channel Divinity, Divine Health
-  - ASI and Extra Attack
-  - Lay on Hands scales with level
-  - CHA-based prepared half-caster slots
-  - Devotion oath spells are always prepared
-- Ranger levels 1–5
-  - Fighting Style and WIS-based half-caster Spellcasting
-  - Known-spell selection and optional spell replacement on level-up
-  - Hunter archetype with Hunter’s Prey choice
-  - Primeval Awareness, ASI and Extra Attack
-- Half-caster slot progression through 2nd-level slots at class level 5
-- Divine Smite combat dialog spends the selected slot and rolls radiant damage
-- Expanded curated SRD spell content for Paladin and Ranger
+## Core v4.8
+- Bard levels 1–5: Jack of All Trades, Song of Rest, College of Lore, Expertise/Bonus Proficiencies/Cutting Words, ASI, Bardic Inspiration d8 and Font of Inspiration
+- Druid levels 1–5: Wild Shape, Circle of the Land (Coast vertical slice), Natural Recovery, Wild Shape improvement, ASI and full-caster spell progression
+- Sorcerer levels 1–5: Font of Magic, Sorcery Points, two Metamagic choices, ASI and spell progression through 3rd level
+- Warlock levels 1–5: Eldritch Invocations, Pact Boon, ASI, Pact Magic scaling through 3rd-level slots and one additional invocation at level 5
+- Known-spell level-up workflow for Bard, Sorcerer and Warlock, including optional replacement
+- Cantrip progression during level-up
+- Additional curated SRD spell content through spell level 3
+- Spell slot progression for all four classes
+- Resource recovery updates for Bardic Inspiration, Wild Shape, Natural Recovery and Sorcery Points
 
-## Previous systems retained
-- Fighter, Wizard, Cleric, Barbarian, Rogue and Monk levels 1–5
-- All twelve classes in Character Creator
-- Starting equipment packages and live Review & Validation
-- Spellcasting, concentration, combat, rests, death saves, autosave, Undo, import/export and offline PWA
+## Repair included
+- Replaced the damaged v4.7 patch with a clean UTF-8 build and parser-checked it before publication.
+- Paladin and Ranger levels 1–5 remain enabled.
 
-Context-dependent features such as Hunter’s Prey triggers, Channel Divinity targets and spell targets remain player/DM controlled where the app cannot infer the table state.
+## Existing systems retained
+Fighter, Wizard, Cleric, Barbarian, Rogue, Monk, Paladin and Ranger levels 1–5; all twelve classes in Character Creator; starting equipment; Review & Validation; combat; concentration; rests; death saves; autosave; Undo; import/export; offline PWA.
+
+Some target-dependent features and transformations remain player/DM controlled when the app cannot infer table state.
 
 ## Next
-Bard, Druid, Sorcerer and Warlock levels 2–5, then multiclass rules.
+Multiclass prerequisites, multiclass level-up, combined spell slots and multiclass class-feature rules.
