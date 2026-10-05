@@ -1,0 +1,47 @@
+✔ SRD 2014: 12 classes and 319 spells offline (1.399623ms)
+✔ negative modifiers use floor (0.171248ms)
+✔ human racial bonus and fighter armor proficiency (2.718722ms)
+✔ dwarf subrace retroactive HP (1.270167ms)
+✔ multiclass proficiency and slots Fighter3 Wizard4 (2.427724ms)
+✔ multiclass requirements atomic (1.918656ms)
+✔ single half caster and combined floor (0.945637ms)
+✔ warlock pact separate (0.647487ms)
+✔ crit doubles dice not constants (0.638854ms)
+✔ advantage cancellation does not count sources (0.931686ms)
+✔ resistance once, temporary HP and concentration damage (0.460826ms)
+✔ zero HP and damage death failures incl critical (0.561327ms)
+✔ massive damage instant death threshold (0.492433ms)
+✔ death natural20 heals and natural1 twice fails (0.784234ms)
+✔ 3 death successes stable, healing clears saves (0.649149ms)
+✔ incapacitated ends concentration (1.048503ms)
+✔ short rest bounded dice, cannot exceed max HP (1.001181ms)
+✔ long rest half HD minimum1 and 24h benefit interval (0.586846ms)
+✔ effects expire and equipped item only (0.538633ms)
+✔ ASI CON retroactive HP, invalid ASI atomic (1.19305ms)
+✔ weapon ranged finesse and negative offhand (0.590141ms)
+✔ nat1 attack auto miss, saves nat20 no autosuccess (0.897585ms)
+✔ spell slot consumption and concentration replace (1.171368ms)
+✔ cantrip scales by total character level (0.698264ms)
+✔ ammunition per-unit weight and potion definition (0.194634ms)
+✔ exhaustion 2014 cumulative (0.485904ms)
+✔ JSON rejects prototype pollution, migration v4 roundtrip (1.450329ms)
+✔ expertise and Bard Jack of All Trades (0.577351ms)
+✔ medium armor retains negative DEX and caps positive (0.29194ms)
+✔ spell DC attack and preparation count (0.260112ms)
+✔ damage vulnerability and immunity (0.320083ms)
+✔ concentration DC rounds down and losing removes linked effects (0.464511ms)
+✔ rage expires for damage resistance and casting restrictions (0.511482ms)
+✔ negative caster modifier accepted in healing formula (0.411451ms)
+✔ weapon proficiency and precise weight of starting packs (0.433484ms)
+✔ equipped custom effect changes AC once (0.384911ms)
+✔ import validates nested values and portrait sources (0.514356ms)
+✔ base spell attack crit doubles damage dice (0.552153ms)
+✔ v3 migration preserves prepared spells, spent slots and growing HP (0.947731ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 151.398842

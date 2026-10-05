@@ -1,0 +1,5 @@
+{
+  "passed": true,
+  "scenario": "Full browser shutdown and reopen using same profile, network offline; IndexedDB character retained",
+  "date": "2026-10-05T10:50:41.948Z"
+}
