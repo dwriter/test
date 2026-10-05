@@ -1,26 +1,24 @@
-# D&D 5e 2014 Player — Core v4.8
+# D&D 5e 2014 Player — Core v4.9
 
 Offline mobile-first PWA for D&D 5e (2014 rules).
 
-## Core v4.8
-- Bard levels 1–5: Jack of All Trades, Song of Rest, College of Lore, Expertise/Bonus Proficiencies/Cutting Words, ASI, Bardic Inspiration d8 and Font of Inspiration
-- Druid levels 1–5: Wild Shape, Circle of the Land (Coast vertical slice), Natural Recovery, Wild Shape improvement, ASI and full-caster spell progression
-- Sorcerer levels 1–5: Font of Magic, Sorcery Points, two Metamagic choices, ASI and spell progression through 3rd level
-- Warlock levels 1–5: Eldritch Invocations, Pact Boon, ASI, Pact Magic scaling through 3rd-level slots and one additional invocation at level 5
-- Known-spell level-up workflow for Bard, Sorcerer and Warlock, including optional replacement
-- Cantrip progression during level-up
-- Additional curated SRD spell content through spell level 3
-- Spell slot progression for all four classes
-- Resource recovery updates for Bardic Inspiration, Wild Shape, Natural Recovery and Sorcery Points
-
-## Repair included
-- Replaced the damaged v4.7 patch with a clean UTF-8 build and parser-checked it before publication.
-- Paladin and Ranger levels 1–5 remain enabled.
+## Core v4.9 — Multiclass Foundation
+- 2014 multiclass prerequisite checks for all twelve classes
+- Requirements are checked for both the current class and the new class
+- Total character level cap of 20
+- Initial multiclass targets: Fighter, Barbarian, Rogue and Monk
+- Correct multiclass HP gain using fixed class HP + CON modifier
+- Additional Hit Die of the new class
+- Multiclass proficiency subset tracking
+- Fighter multiclass: Fighting Style + Second Wind
+- Barbarian multiclass: Rage + Unarmored Defense reference
+- Rogue multiclass: Sneak Attack 1d6, Expertise selection and Thieves’ Cant reference
+- Monk multiclass: Unarmored Defense + Martial Arts reference
+- Character sheet and More screen show multiclass class/level summary
+- Undo/log/autosave remain active for multiclass additions
 
 ## Existing systems retained
-Fighter, Wizard, Cleric, Barbarian, Rogue, Monk, Paladin and Ranger levels 1–5; all twelve classes in Character Creator; starting equipment; Review & Validation; combat; concentration; rests; death saves; autosave; Undo; import/export; offline PWA.
-
-Some target-dependent features and transformations remain player/DM controlled when the app cannot infer table state.
+All twelve classes in Character Creator; all classes progress through level 5; starting equipment; Review & Validation; spellcasting; concentration; combat; rests; death saves; autosave; Undo; import/export; offline PWA.
 
 ## Next
-Multiclass prerequisites, multiclass level-up, combined spell slots and multiclass class-feature rules.
+Core v5.0: caster multiclass targets, multiclass level-up into an existing secondary class, combined Spellcasting slots, Pact Magic separation and multiclass spell preparation/known-spell rules.
