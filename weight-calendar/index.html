@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f7f2">
   <meta name="description" content="Спокойный календарь питания и динамики веса. Все записи остаются на вашем устройстве.">
-  <title>Тихий прогресс — календарь привычек и веса</title>
-  <link rel="icon" href="./icon.svg?v=2" type="image/svg+xml">
+  <title>Тихий прогресс 2.0 — календарь питания и веса</title>
+  <link rel="icon" href="./icon.svg?v=3" type="image/svg+xml">
   <link rel="manifest" href="./manifest.webmanifest">
   <style>
     :root{--bg:#f6f7f2;--paper:#fff;--ink:#243832;--muted:#809087;--line:#e5ebe4;--sage:#537b65;--sage2:#e5f0e7;--green:#2e6650;--rose:#b57f75;--rosebg:#f8ece9;--gold:#e8ce97;--shadow:0 12px 35px rgba(39,60,49,.045);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);font-synthesis:none}
@@ -14,6 +14,40 @@
     @media(max-width:850px){.app{padding:22px 16px 55px}.main,.below{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.side-stack{grid-template-columns:1fr 1fr}.side-stack>.panel{grid-column:1}.side-stack .goalwrap{grid-column:2;grid-row:1}.side-stack .quote{grid-column:1/-1;margin:0 0 4px}.top{margin-bottom:23px}}
     @media(max-width:520px){.app{padding:18px 12px 42px}.brandmark{width:39px;height:39px;border-radius:13px}.brand-title{font-size:17px}.brand{gap:10px}.eyebrow{font-size:9px}.top-actions .btn{padding:9px 10px;font-size:12px}.intro{display:block}.intro h1{font-size:32px}.today-pill{display:inline-block;margin-top:15px}.stats{gap:9px}.stat{border-radius:16px;padding:14px;min-height:108px}.stat .v{font-size:25px}.stat .k{font-size:12px}.panel{padding:16px 12px;border-radius:19px}.panel-header{margin-bottom:16px}.panel h2{font-size:18px}.month-switch span{min-width:112px;font-size:12px}.month-switch{gap:2px}.month-switch .btn{padding:6px 8px}.weekheads,.days{gap:4px}.day{min-height:0;padding:5px;border-radius:11px}.day.selected{padding:4px}.day.today .num{height:22px;width:22px;margin:-2px;line-height:22px}.num{font-size:12px;line-height:20px}.stamp{height:19px;width:19px;font-size:12px}.stamp.weight{height:15px;font-size:9px;padding:0 4px}.legend{gap:10px;font-size:11px}.side-stack{grid-template-columns:1fr}.side-stack>.panel,.side-stack .goalwrap,.side-stack .quote{grid-column:1;grid-row:auto}.choice button{min-height:45px}.months td,.months th{padding:12px 4px;font-size:11px}.bar{width:30px;margin-left:4px}}
     @media(max-width:350px){.top{gap:6px}.brand{gap:7px}.brandmark{width:35px;height:35px}.brand-title{font-size:15px}.top-actions .btn{padding:8px 7px;font-size:11px}}
+
+    /* Тихий прогресс 2.0 */
+    .below>div,.below .panel,.below .side-stack,.main>div,.main>.panel,.insights>.panel{min-width:0}
+    .below .panel-header{flex-wrap:wrap}.section-nav{max-width:100%}
+    .overview{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-bottom:16px}
+    .overview .panel{margin:0}.hero-weight{background:linear-gradient(135deg,#ffffff 10%,#edf5eb 100%);position:relative;overflow:hidden}
+    .hero-weight:after{content:"";position:absolute;right:-35px;bottom:-55px;width:180px;height:180px;border:28px solid #c7dfc955;border-radius:50%;pointer-events:none}
+    .hero-top{display:flex;justify-content:space-between;gap:12px;align-items:center}.hero-top .tiny-label{color:#5e8069}
+    .hero-number{font-size:clamp(36px,5.5vw,58px);letter-spacing:-.065em;line-height:1.2;font-weight:780;margin:9px 0 2px;font-variant-numeric:tabular-nums}
+    .hero-trend{font-size:13px;color:#537b65;min-height:24px}.hero-summary{max-width:410px;z-index:1;position:relative}
+    .hero-progress{height:10px;border-radius:20px;background:#d6e4d4;overflow:hidden;margin-top:18px}
+    .hero-progress>span{display:block;height:100%;background:#60866a;border-radius:20px;transition:width .3s}
+    .hero-progress-label{color:#758a79;font-size:12px;margin-top:8px;display:flex;justify-content:space-between;gap:12px}
+    .quick h2{margin:8px 0 3px;font-size:24px}.quick .helper{margin:0}.quick .choice{margin:16px 0 7px}
+    .quick-choice button{min-height:61px;font-size:15px}.quick-choice button:first-child{background:#e9f4e9;color:#366e4f}
+    .quick-choice button:nth-child(2){background:#faf5f3;color:#996f68}
+    .quick-feedback{min-height:21px;font-size:12px;color:#68836f;margin:8px 0 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .quick-feedback button{font-size:12px;color:#537b65;background:transparent;border:0;text-decoration:underline;padding:3px}
+    .section-nav{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:3px 0 15px}
+    .section-nav a{white-space:nowrap;color:#657e6b;background:#eaf0e7;text-decoration:none;border:1px solid #e3ece3;border-radius:999px;padding:9px 15px;font-weight:700;font-size:13px}
+    .section-nav a:hover,.section-nav a:focus-visible{background:#dcebdc;color:#2e6650}
+    .insights{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+    .week-controls{display:flex;align-items:center;gap:7px}.week-controls button{padding:5px 10px}.week-title{font-size:13px;color:#657f70;margin:8px 0 14px}
+    .week-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.week-stat{background:#f6f9f4;border-radius:15px;padding:15px}
+    .week-stat .number{font-size:27px;font-weight:780;letter-spacing:-.04em}.week-stat .caption{font-size:12px;color:#789083;margin-top:2px}
+    .week-summary{font-size:13px;line-height:1.6;color:#5c7969;margin:13px 0 0}
+    .milestones{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.milestone{border:1px solid #e4ebe2;border-radius:13px;padding:11px 13px;background:#f9faf7;display:flex;align-items:center;gap:7px;font-size:13px;font-weight:720}
+    .milestone.done{color:#326d4f;background:#e7f3e9;border-color:#cfe3d1}.milestone.next{color:#456852;background:#f1f6e9;border-color:#a9cbb0}
+    .chart-note{margin:0 0 9px;font-size:12px;color:#819386}.chart-legend{display:flex;gap:17px;flex-wrap:wrap;font-size:12px;color:#788d7d;margin-top:5px}
+    .line-key{display:inline-block;width:24px;height:0;border-top:3px solid #5c9277;vertical-align:middle;margin-right:5px}.line-key.trend{border-color:#bbad70;border-top-style:dashed}
+    .all-time-extra{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:12px 0;font-size:13px;color:#728c7c}
+    .stats{scroll-margin-top:12px}.main,.below,.insights{scroll-margin-top:14px}
+    @media(max-width:780px){.overview,.insights{grid-template-columns:1fr}.hero-number{font-size:46px}}
+    @media(max-width:520px){.overview{gap:12px;margin-bottom:11px}.overview .panel{padding:18px}.hero-number{font-size:43px}.quick h2{font-size:20px}.quick-choice button{font-size:13px;min-height:56px}.section-nav{padding-bottom:12px}.insights{gap:12px}.week-stats{gap:7px}.week-stat{padding:12px}.week-stat .number{font-size:23px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
   </style>
 </head>
@@ -26,13 +60,28 @@
   <main>
     <div class="intro"><div><div class="eyebrow">Ваш личный дневник</div><h1>Маленькие шаги.<br>Устойчивый результат.</h1><p>Отмечайте привычку каждый день. Вес записывайте раз в неделю.<br>Без гонки за идеальными цифрами.</p></div><div id="datePill" class="today-pill"></div></div>
     <div id="storageBanner" class="banner" role="alert">Не удалось сохранить данные в браузере. Проверьте настройки хранилища и выгрузите резервную копию.</div>
+    <section class="overview" id="overview" aria-label="Быстрый обзор">
+      <section class="panel hero-weight" aria-label="Текущий вес и прогресс">
+        <div class="hero-summary"><div class="hero-top"><div class="tiny-label">Ваш путь</div><span class="eyebrow">Без спешки</span></div>
+          <div class="hero-number" id="heroWeight">—</div><div class="hero-trend" id="heroTrend">Добавьте первое взвешивание</div>
+          <div class="hero-progress" aria-hidden="true"><span id="heroProgress" style="width:0%"></span></div>
+          <div class="hero-progress-label"><span id="heroProgressText">Ваш результат будет здесь</span><span id="heroGoal">Цель не задана</span></div>
+        </div>
+      </section>
+      <section class="panel quick" aria-label="Быстрая отметка за сегодня"><div class="tiny-label">Быстрая отметка · сегодня</div>
+        <h2>Как прошёл день?</h2><p class="helper" id="quickHint">Одна отметка — уже полезная привычка.</p>
+        <div class="choice quick-choice"><button type="button" id="quickYes" aria-pressed="false">✓ По плану</button><button type="button" id="quickNo" aria-pressed="false">Не по плану</button></div>
+        <div class="quick-feedback" role="status"><span id="quickFeedback">День ещё не отмечен.</span><button id="quickUndo" type="button" hidden>Отменить</button></div>
+      </section>
+    </section>
+    <nav class="section-nav" aria-label="Разделы приложения"><a href="#calendarPanel">Календарь</a><a href="#analyticsPanel">Аналитика</a><a href="#weekPanel">Обзор недели</a><a href="#historyPanel">История</a></nav>
     <section class="stats" aria-label="Статистика текущего месяца">
       <div class="stat"><div class="k">Соблюдение за месяц</div><div class="v positive" id="mRate">—</div><div class="foot" id="mRateDesc">Нет отметок</div></div>
-      <div class="stat"><div class="k">Дней по плану</div><div class="v" id="mYes">0</div><div class="foot" id="mYesDesc">В выбранном месяце</div></div>
+      <div class="stat"><div class="k">Заполненность месяца</div><div class="v" id="mCoverage">—</div><div class="foot" id="mCoverageDesc">Нет отметок</div></div>
       <div class="stat"><div class="k">Изменение веса за месяц</div><div class="v" id="mWeight">—</div><div class="foot" id="mWeightDesc">Нужны взвешивания</div></div>
       <div class="stat"><div class="k">Последний вес</div><div class="v" id="lastWeight">—</div><div class="foot" id="lastWeightDesc">Пока нет записи</div></div>
     </section>
-    <section class="main">
+    <section class="main" id="calendarPanel">
       <div class="panel" aria-label="Календарь питания"><div class="panel-header"><h2>Календарь</h2><div class="month-switch"><button id="prevMonth" type="button" class="btn icon-only" aria-label="Предыдущий месяц">‹</button><span id="monthTitle"></span><button id="nextMonth" type="button" class="btn icon-only" aria-label="Следующий месяц">›</button></div></div>
         <div class="weekheads" aria-hidden="true"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div><div id="days" class="days"></div>
         <div class="legend"><span><i class="dot"></i>По плану</span><span><i class="dot no"></i>Не получилось</span><span><i class="dot weight"></i>Взвешивание</span></div>
@@ -43,13 +92,19 @@
         <p class="quote" id="quote">«Не обязательно быть безупречным. Достаточно возвращаться к выбранному направлению.»</p>
       </div>
     </section>
-    <section class="below">
-      <div><section class="panel"><div class="panel-header"><div><div class="tiny-label" style="margin-bottom:6px">Динамика</div><h2>Как меняется вес</h2></div><div class="seg" role="group" aria-label="Период графика"><button type="button" id="chartMonth" aria-pressed="true">Месяц</button><button type="button" id="chartAll" aria-pressed="false">Всё время</button></div></div><div id="chartBox" class="chartbox"></div></section>
-      <section class="panel months"><div class="panel-header"><div><div class="tiny-label" style="margin-bottom:6px">Общий обзор</div><h2>По месяцам</h2></div></div><div style="overflow-x:auto"><table><thead><tr><th>Месяц</th><th>По плану</th><th>Соблюдение</th><th>Вес</th></tr></thead><tbody id="monthRows"></tbody></table></div></section></div>
-      <div class="side-stack" style="display:block"><section class="panel"><div class="tiny-label">За всё время</div><h2 style="margin:7px 0 17px">Что уже получилось</h2><div id="allStats"></div></section><section class="panel"><div class="tiny-label">История</div><h2 style="margin:7px 0 11px">Последние взвешивания</h2><div id="historyBox"></div></section></div>
+    <section class="insights" aria-label="Недельный обзор и цели">
+      <section class="panel" id="weekPanel"><div class="panel-header"><div><div class="tiny-label">Каждая неделя важна</div><h2 style="margin-top:6px">Ваш недельный обзор</h2></div><div class="week-controls"><button type="button" class="btn icon-only" id="weekPrev" aria-label="Предыдущая неделя">‹</button><button type="button" class="btn icon-only" id="weekNext" aria-label="Следующая неделя">›</button></div></div>
+        <div class="week-title" id="weekTitle"></div><div class="week-stats"><div class="week-stat"><div class="number" id="weekRate">—</div><div class="caption">Соблюдение</div></div><div class="week-stat"><div class="number" id="weekCoverage">—</div><div class="caption">Заполненность</div></div></div><p class="week-summary" id="weekSummary"></p>
+      </section>
+      <section class="panel" id="milestonePanel"><div class="tiny-label">Маленькими шагами</div><h2 style="margin:7px 0 10px">Промежуточные цели</h2><p class="helper" id="milestoneHint">Отмечаем не идеальные дни, а пройденный путь.</p><div class="milestones" id="milestoneList"></div></section>
+    </section>
+    <section class="below" id="analyticsPanel">
+      <div><section class="panel"><div class="panel-header"><div><div class="tiny-label" style="margin-bottom:6px">Динамика</div><h2>Как меняется вес</h2></div><div class="seg" role="group" aria-label="Период графика"><button type="button" id="chartMonth" aria-pressed="true">Месяц</button><button type="button" id="chartAll" aria-pressed="false">Всё время</button></div></div><div id="chartBox" class="chartbox"></div><div class="chart-legend"><span><i class="line-key"></i>Измерения</span><span><i class="line-key trend"></i>Сглаженный тренд (3 записи)</span></div><p class="chart-note">Вес может колебаться из-за воды и других факторов. Смотрите на динамику, а не на один день.</p></section>
+      <section class="panel months"><div class="panel-header"><div><div class="tiny-label" style="margin-bottom:6px">Общий обзор</div><h2>По месяцам</h2></div></div><div style="overflow-x:auto"><table><thead><tr><th>Месяц</th><th>По плану</th><th>Соблюдение</th><th>Заполнено</th><th>Вес</th></tr></thead><tbody id="monthRows"></tbody></table></div></section></div>
+      <div class="side-stack" style="display:block"><section class="panel"><div class="tiny-label">За всё время</div><h2 style="margin:7px 0 17px">Что уже получилось</h2><div id="allStats"></div></section><section class="panel" id="historyPanel"><div class="tiny-label">История</div><h2 style="margin:7px 0 11px">Последние взвешивания</h2><div id="historyBox"></div></section></div>
     </section>
   </main>
-  <footer class="footer"><div>Все записи хранятся на этом устройстве. Для переноса используйте резервную копию.</div><div class="links"><button type="button" class="text-btn" id="exportBtn">Скачать копию</button><button type="button" class="text-btn" id="importBtn">Восстановить</button><input id="importFile" type="file" accept=".json,application/json"></div></footer>
+  <footer class="footer"><div>Все записи хранятся на этом устройстве. Для переноса используйте резервную копию.</div><div class="links"><button type="button" class="text-btn" id="exportBtn">Скачать копию</button><button type="button" class="text-btn" id="csvBtn">Экспорт CSV</button><button type="button" class="text-btn" id="importBtn">Восстановить</button><input id="importFile" type="file" accept=".json,application/json"></div></footer>
 </div>
 <dialog id="settingsDialog" aria-labelledby="settingsTitle"><form id="settingsForm"><h2 id="settingsTitle">Ваша цель</h2><p>Цель можно изменить в любой момент. Приложение посчитает путь от первого записанного веса до последнего.</p><label for="goalInput">Желаемый вес, кг</label><input id="goalInput" class="setting-input" type="number" min="20" max="400" step="0.1" inputmode="decimal" placeholder="Например, 80"><p>Поле можно оставить пустым. Это не влияет на календарь и статистику.</p><menu><button type="button" class="btn" id="cancelSettings">Отмена</button><button type="submit" class="btn primary">Сохранить</button></menu></form></dialog>
 <script>
@@ -72,7 +127,7 @@
     return data;
   }
   let data;try{data=clean(JSON.parse(localStorage.getItem(KEY)||'{}'))}catch{data=clean({})}
-  let selected=today(),cursor=new Date(new Date().getFullYear(),new Date().getMonth(),1),chartScope='month';
+  let selected=today(),cursor=new Date(new Date().getFullYear(),new Date().getMonth(),1),chartScope='month',weekOffset=0,undoQuick=null;
   function persist(){try{localStorage.setItem(KEY,JSON.stringify(data));$('#storageBanner').classList.remove('show');return true}catch{$('#storageBanner').classList.add('show');return false}}
   const entries=()=>Object.entries(data.entries).sort((a,b)=>a[0].localeCompare(b[0]));
   const weights=()=>Object.entries(data.weights).sort((a,b)=>a[0].localeCompare(b[0]));
@@ -97,14 +152,61 @@
     for(const k of ['yes','no']){const b=$('#'+k+'Btn');b.className=v===k?'active '+k:'';b.setAttribute('aria-pressed',String(v===k));b.disabled=isFuture}
     $('#clearBtn').disabled=isFuture||!v;$('#weightInput').disabled=isFuture;$('#weightInput').value=w??'';$('#saveWeight').disabled=isFuture;$('#deleteWeight').hidden=w===undefined;$('#weightStatus').textContent=w===undefined?'В этот день вес ещё не записан.':'Записано: '+num(w)+' кг';
   }
-  function renderStats(){const key=monthKey(),sc=score(monthEntries(key)),delta=weightDelta(key),ws=weights();stat('#mRate',sc.rate===null?'—':sc.rate+'%');stat('#mRateDesc',sc.total?`${sc.yes} из ${sc.total} отмеченных дней`:'Отметок пока нет');stat('#mYes',String(sc.yes));stat('#mYesDesc',sc.no?`Не по плану: ${sc.no}`:'За выбранный месяц');stat('#mWeight',signed(delta));stat('#mWeightDesc',monthWeights(key).length?`Взвешиваний: ${monthWeights(key).length}`:'Нет взвешиваний');stat('#lastWeight',ws.length?num(ws.at(-1)[1])+' кг':'—');stat('#lastWeightDesc',ws.length?fmtShort.format(parse(ws.at(-1)[0])):'Пока нет записи');
+  function monthElapsed(key){const [year,month]=key.split('-').map(Number),days=new Date(year,month,0).getDate(),cur=today().slice(0,7);return key===cur?new Date().getDate():key<cur?days:0}
+  function coverage(key){const possible=monthElapsed(key),marked=monthEntries(key).length;return {marked,possible,percent:possible?Math.round(marked/possible*100):null}}
+  const addDays=(date,days)=>{const d=parse(date);d.setDate(d.getDate()+days);return iso(d)};
+  function fourWeekDelta(){const w=weights();if(w.length<2)return null;const last=w.at(-1),end=parse(last[0]).getTime(),anchor=end-28*86400000;
+    const eligible=w.slice(0,-1).filter(([date])=>{const gap=(end-parse(date).getTime())/86400000;return gap>=21&&gap<=35});
+    if(!eligible.length)return null;const ref=eligible.reduce((best,item)=>Math.abs(parse(item[0]).getTime()-anchor)<Math.abs(parse(best[0]).getTime()-anchor)?item:best);
+    return {delta:Math.round((last[1]-ref[1])*10)/10,from:ref[0],to:last[0]};
+  }
+  function progressInfo(){const w=weights();if(!w.length||data.target===null)return null;const first=w[0][1],last=w.at(-1)[1],goal=data.target;
+    const percent=first===goal?(last===goal?100:0):Math.max(0,Math.min(100,Math.round((last-first)/(goal-first)*100)));
+    return {first,last,goal,percent,remaining:Math.abs(last-goal)};
+  }
+  function renderHero(){const w=weights(),progress=progressInfo(),tr=fourWeekDelta();
+    stat('#heroWeight',w.length?num(w.at(-1)[1])+' кг':'— кг');
+    if(tr){stat('#heroTrend',(tr.delta<0?'↓ ':tr.delta>0?'↑ ':'→ ')+signed(tr.delta)+' за '+Math.round((parse(tr.to)-parse(tr.from))/86400000)+' дней');}
+    else stat('#heroTrend',w.length>=2?'Для тренда за 4 недели нужны измерения с интервалом 21–35 дней.':w.length?'Добавляйте вес примерно раз в неделю.':'Начните с первого взвешивания.');
+    $('#heroProgress').style.width=progress?progress.percent+'%':'0%';
+    stat('#heroProgressText',progress?progress.percent+'% пути от первого измерения':w.length?'Задайте желаемый вес в настройках':'Запишите первый вес и укажите цель');
+    stat('#heroGoal',progress?'Цель: '+num(progress.goal)+' кг':data.target!==null?'Цель: '+num(data.target)+' кг':'Цель не задана');
+  }
+  function renderQuick(){const value=data.entries[today()];$('#quickYes').className=value==='yes'?'active yes':'';$('#quickNo').className=value==='no'?'active no':'';
+    $('#quickYes').setAttribute('aria-pressed',String(value==='yes'));$('#quickNo').setAttribute('aria-pressed',String(value==='no'));
+    stat('#quickHint','Отметка за '+fmtDate.format(parse(today())));
+    stat('#quickFeedback',value==='yes'?'Сегодня по плану. Хорошая работа!':value==='no'?'Отмечено без осуждения. Завтра — новый день.':'День ещё не отмечен.');
+    $('#quickUndo').hidden=!(undoQuick&&undoQuick.day===today()&&value===undoQuick.value);
+  }
+  function mondayFor(offset){const d=parse(today());d.setDate(d.getDate()-((d.getDay()+6)%7)+offset*7);return iso(d)}
+  function weekInfo(offset){const start=mondayFor(offset),end=addDays(start,6),limit=end>today()?today():end;
+    const list=entries().filter(([date])=>date>=start&&date<=limit),possible=Math.max(0,Math.min(7,Math.round((parse(limit)-parse(start))/86400000)+1));
+    return {...score(list),possible,start,end,limit};
+  }
+  function renderWeek(){const current=weekInfo(weekOffset),prior=weekInfo(weekOffset-1),pct=current.possible?Math.round(current.total/current.possible*100):null;
+    stat('#weekTitle',fmtShort.format(parse(current.start))+' — '+fmtShort.format(parse(current.end)));stat('#weekRate',current.rate===null?'—':current.rate+'%');
+    stat('#weekCoverage',pct===null?'—':pct+'%');$('#weekNext').disabled=weekOffset>=0;
+    let summary=current.total?`По плану: ${current.yes} из ${current.total} отмеченных дней. Заполнено ${current.total} из ${current.possible}.`:'За эту неделю пока нет отметок.';
+    if(current.total&&prior.total){const change=current.rate-prior.rate;summary+=' Относительно предыдущей недели: '+(change===0?'без изменения':(change>0?'+':'')+change+' п. п.')+'.'}
+    if(weekOffset===0)summary+=' Каждый день можно начать заново.';
+    stat('#weekSummary',summary);
+  }
+  function renderMilestones(){const w=weights(),goal=data.target,el=$('#milestoneList');if(!w.length||goal===null){el.replaceChildren();stat('#milestoneHint',!w.length?'Сначала добавьте взвешивание.':'Задайте цель в настройках, чтобы появились этапы.');return}
+    const first=w[0][1],last=w.at(-1)[1];if(first===goal){el.innerHTML='<span class="helper">Первая запись уже совпадает с целью.</span>';stat('#milestoneHint','Для новой цели откройте настройки.');return}
+    const down=first>goal,step=5,levels=[];let mark=down?Math.floor((first-.0001)/step)*step:Math.ceil((first+.0001)/step)*step;
+    for(let i=0;i<80&&(down?mark>goal:mark<goal);i++,mark+=down?-step:step)levels.push(mark);
+    levels.push(goal);const limited=levels.slice(0,15),next=limited.find(m=>down?last>m:last<m);
+    el.innerHTML=limited.map(m=>{const done=down?last<=m:last>=m,active=m===next;return `<div class="milestone ${done?'done':active?'next':''}">${done?'✓ ':active?'◌ ':''}${num(m)} кг</div>`}).join('');
+    stat('#milestoneHint',levels.length>15?'Показаны ближайшие 15 этапов.':next===undefined?'Цель достигнута. Можно выбрать новый ориентир.':'Следующий ориентир: '+num(next)+' кг.');
+  }
+  function renderStats(){const key=monthKey(),sc=score(monthEntries(key)),delta=weightDelta(key),ws=weights();stat('#mRate',sc.rate===null?'—':sc.rate+'%');stat('#mRateDesc',sc.total?`${sc.yes} из ${sc.total} отмеченных дней`:'Отметок пока нет');const cov=coverage(key);stat('#mCoverage',cov.percent===null?'—':cov.percent+'%');stat('#mCoverageDesc',`${cov.marked} из ${cov.possible} дней · по плану ${sc.yes}`);stat('#mWeight',signed(delta));stat('#mWeightDesc',monthWeights(key).length?`Взвешиваний: ${monthWeights(key).length}`:'Нет взвешиваний');stat('#lastWeight',ws.length?num(ws.at(-1)[1])+' кг':'—');stat('#lastWeightDesc',ws.length?fmtShort.format(parse(ws.at(-1)[0])):'Пока нет записи');
     const all=score(entries()),st=streaks(),total=ws.length>=2?Math.round((ws.at(-1)[1]-ws[0][1])*10)/10:null;
     const info=[['Дней по плану',String(all.yes)],['Соблюдение',all.rate===null?'—':all.rate+'%'],['Изменение веса',signed(total)],['Лучшая серия',st.best+' дн.'],['Текущая серия',st.active+' дн.']];
     $('#allStats').innerHTML=info.map(([k,v],i)=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;${i?'border-top:1px solid var(--line)':''}"><span class="helper">${k}</span><strong style="font-size:17px;letter-spacing:-.025em">${v}</strong></div>`).join('')+`<p class="helper" style="margin-bottom:0">Процент считается только по отмеченным дням (${all.total}). Пустые дни не считаются нарушениями.</p>`;
   }
   function renderGoal(){const ws=weights(),target=data.target;let html='';if(target===null){html=`<div class="goal-top"><span class="tiny-label">Ваша цель</span></div><p style="margin:10px 0 12px;font-size:18px;font-weight:720">Свой темп — это нормально.</p><button class="btn soft" id="setGoal" type="button">Указать целевой вес</button>`}
     else if(!ws.length){html=`<div class="goal-top"><span class="tiny-label">Ваша цель</span><strong>${num(target)} кг</strong></div><p class="helper">Добавьте первое взвешивание, чтобы увидеть прогресс.</p>`}
-    else{const first=ws[0][1],last=ws.at(-1)[1],distance=Math.abs(first-target),covered=Math.abs(first-last);const percent=distance===0?100:Math.max(0,Math.min(100,Math.round(((last-first)/(target-first))*100)));const remaining=Math.abs(last-target);html=`<div class="goal-top"><span class="tiny-label">Путь к цели</span><strong>${num(target)} кг</strong></div><div class="progress" role="progressbar" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" aria-label="Прогресс к цели"><div style="width:${percent}%"></div></div><div class="goal-top"><span class="helper">${percent}% пути</span><span class="helper">До цели: ${num(remaining)} кг</span></div><div class="helper" style="margin-top:9px">От ${num(first)} кг · сейчас ${num(last)} кг</div>`}
+    else{const first=ws[0][1],last=ws.at(-1)[1],distance=Math.abs(first-target),covered=Math.abs(first-last);const percent=distance===0?(last===target?100:0):Math.max(0,Math.min(100,Math.round(((last-first)/(target-first))*100)));const remaining=Math.abs(last-target);html=`<div class="goal-top"><span class="tiny-label">Путь к цели</span><strong>${num(target)} кг</strong></div><div class="progress" role="progressbar" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" aria-label="Прогресс к цели"><div style="width:${percent}%"></div></div><div class="goal-top"><span class="helper">${percent}% пути</span><span class="helper">До цели: ${num(remaining)} кг</span></div><div class="helper" style="margin-top:9px">От ${num(first)} кг · сейчас ${num(last)} кг</div>`}
     $('#goalBox').innerHTML=html;
   }
   function renderChart(){const items=chartScope==='month'?monthWeights(monthKey()):weights();$('#chartMonth').setAttribute('aria-pressed',String(chartScope==='month'));$('#chartAll').setAttribute('aria-pressed',String(chartScope==='all'));
@@ -118,22 +220,31 @@
     let grid='';for(let i=0;i<=4;i++){let gy=T+i*ih/4,level=hi-i*(hi-lo)/4;grid+=`<line x1="${L}" x2="${W-R}" y1="${gy}" y2="${gy}" stroke="#e8ede7" stroke-dasharray="3 5"/><text x="${L-9}" y="${gy+4}" fill="#93a69a" font-size="12" text-anchor="end">${num(Math.round(level*10)/10)}</text>`}
     let xLabels='';for(const idx of [...new Set([0,Math.floor((items.length-1)/2),items.length-1])]){xLabels+=`<text x="${x(dates[idx])}" y="${H-9}" text-anchor="middle" fill="#96a79c" font-size="12">${fmtShort.format(parse(items[idx][0]))}</text>`}
     let dots=coords.map(([px,py],i)=>`<circle cx="${px}" cy="${py}" r="${items.length>20?3.5:5}" fill="#54816b" stroke="white" stroke-width="2"><title>${fmtDate.format(parse(items[i][0]))}: ${num(items[i][1])} кг</title></circle>`).join('');
+    const trendCoords=coords.map((point,i)=>i>=2?[point[0],y(Math.round(((vals[i]+vals[i-1]+vals[i-2])/3)*100)/100)]:null).filter(Boolean);
+    const trendPath=trendCoords.map(([tx,ty],i)=>`${i?'L':'M'}${tx.toFixed(1)} ${ty.toFixed(1)}`).join(' ');
     const area=coords.length>1?`<path d="${path} L${coords.at(-1)[0]} ${T+ih} L${coords[0][0]} ${T+ih} Z" fill="#dbeade" opacity=".55"/>`:'';
-    $('#chartBox').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="График веса за ${chartScope==='month'?'выбранный месяц':'всё время'}, измерений: ${items.length}">${grid}${area}${coords.length>1?`<path d="${path}" stroke="#5c9277" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`:''}${dots}${xLabels}</svg>`;
+    $('#chartBox').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="График веса за ${chartScope==='month'?'выбранный месяц':'всё время'}, измерений: ${items.length}">${grid}${area}${coords.length>1?`<path d="${path}" stroke="#5c9277" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`:''}${trendCoords.length>=2?`<path d="${trendPath}" fill="none" stroke="#bbad70" stroke-width="3" stroke-dasharray="8 5" stroke-linecap="round"/>`:''}${dots}${xLabels}</svg>`;
   }
   function renderHistory(){const ws=weights();if(!ws.length){$('#historyBox').innerHTML='<p class="helper">Взвешиваний ещё нет.</p>';return}let html='<table class="history"><thead><tr><th>Дата</th><th>Вес</th><th>Изменение</th></tr></thead><tbody>';for(let i=ws.length-1;i>=Math.max(0,ws.length-6);i--){let diff=i>0?Math.round((ws[i][1]-ws[i-1][1])*10)/10:null;html+=`<tr><td>${fmtShort.format(parse(ws[i][0]))}</td><td>${num(ws[i][1])} кг</td><td>${diff===null?'—':`<span class="tag ${diff>0?'neg':''}">${signed(diff)}</span>`}</td></tr>`}$('#historyBox').innerHTML=html+'</tbody></table>'}
-  function renderMonths(){const keys=[...new Set([...Object.keys(data.entries),...Object.keys(data.weights)].map(x=>x.slice(0,7)))].sort().reverse();if(!keys.length){$('#monthRows').innerHTML='<tr><td colspan="4" class="muted" style="text-align:center;padding:28px">Пока нет записей</td></tr>';return}
-    $('#monthRows').innerHTML=keys.map(key=>{const s=score(monthEntries(key)),d=weightDelta(key),date=parse(key+'-01');return `<tr><td>${fmtMonth.format(date)}</td><td>${s.yes} / ${s.total}</td><td>${s.rate===null?'—':`${s.rate}% <span class="bar"><span style="width:${s.rate}%"></span></span>`}</td><td>${signed(d)}</td></tr>`}).join('');
+  function renderMonths(){const keys=[...new Set([...Object.keys(data.entries),...Object.keys(data.weights)].map(x=>x.slice(0,7)))].sort().reverse();if(!keys.length){$('#monthRows').innerHTML='<tr><td colspan="5" class="muted" style="text-align:center;padding:28px">Пока нет записей</td></tr>';return}
+    $('#monthRows').innerHTML=keys.map(key=>{const s=score(monthEntries(key)),d=weightDelta(key),c=coverage(key),date=parse(key+'-01');return `<tr><td>${fmtMonth.format(date)}</td><td>${s.yes} / ${s.total}</td><td>${s.rate===null?'—':`${s.rate}% <span class="bar"><span style="width:${s.rate}%"></span></span>`}</td><td>${c.marked} / ${c.possible}</td><td>${signed(d)}</td></tr>`}).join('');
   }
-  function render(){stat('#datePill',fmtDate.format(new Date()));renderCalendar();renderDay();renderStats();renderGoal();renderChart();renderHistory();renderMonths()}
+  function render(){stat('#datePill',fmtDate.format(new Date()));renderHero();renderQuick();renderCalendar();renderDay();renderStats();renderGoal();renderWeek();renderMilestones();renderChart();renderHistory();renderMonths()}
   function selectDate(day){selected=day;renderCalendar();renderDay()}
+  function quickMark(status){const day=today(),previous=data.entries[day]??null;undoQuick={day,previous,value:status};data.entries[day]=status;persist();render()}
+  $('#quickYes').addEventListener('click',()=>quickMark('yes'));
+  $('#quickNo').addEventListener('click',()=>quickMark('no'));
+  $('#quickUndo').addEventListener('click',()=>{if(!undoQuick||undoQuick.day!==today()||data.entries[today()]!==undoQuick.value)return;
+    if(undoQuick.previous===null)delete data.entries[today()];else data.entries[today()]=undoQuick.previous;undoQuick=null;persist();render()});
+  $('#weekPrev').addEventListener('click',()=>{weekOffset--;renderWeek()});
+  $('#weekNext').addEventListener('click',()=>{if(weekOffset<0){weekOffset++;renderWeek()}});
   $('#days').addEventListener('click',e=>{const b=e.target.closest('button[data-date]');if(b&&!b.disabled)selectDate(b.dataset.date)});
   function selectWithinMonth(){const last=iso(new Date(cursor.getFullYear(),cursor.getMonth()+1,0));selected=last<today()?last:today()}
   $('#prevMonth').addEventListener('click',()=>{cursor=new Date(cursor.getFullYear(),cursor.getMonth()-1,1);selectWithinMonth();render()});
   $('#nextMonth').addEventListener('click',()=>{if(monthKey()<today().slice(0,7)){cursor=new Date(cursor.getFullYear(),cursor.getMonth()+1,1);selectWithinMonth();render()}});
   $('#todayBtn').addEventListener('click',()=>{selected=today();cursor=new Date(new Date().getFullYear(),new Date().getMonth(),1);render()});
-  document.querySelectorAll('[data-status]').forEach(b=>b.addEventListener('click',()=>{if(selected>today())return;data.entries[selected]=b.dataset.status;persist();render()}));
-  $('#clearBtn').addEventListener('click',()=>{delete data.entries[selected];persist();render()});
+  document.querySelectorAll('[data-status]').forEach(b=>b.addEventListener('click',()=>{if(selected>today())return;data.entries[selected]=b.dataset.status;if(selected===today())undoQuick=null;persist();render()}));
+  $('#clearBtn').addEventListener('click',()=>{delete data.entries[selected];if(selected===today())undoQuick=null;persist();render()});
   $('#saveWeight').addEventListener('click',()=>{if(selected>today())return;const input=$('#weightInput'),raw=input.value.trim().replace(',','.');const n=Number(raw);if(!raw||!Number.isFinite(n)||n<20||n>400){$('#weightStatus').textContent='Введите вес от 20 до 400 кг.';input.focus();return}data.weights[selected]=Math.round(n*10)/10;persist();render();$('#weightStatus').textContent='Вес сохранён.'});
   $('#weightInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#saveWeight').click()});
   $('#deleteWeight').addEventListener('click',()=>{if(confirm('Удалить взвешивание за '+fmtDate.format(parse(selected))+'?')){delete data.weights[selected];persist();render()}});
@@ -141,6 +252,10 @@
   const settings=$('#settingsDialog');function openSettings(){$('#goalInput').value=data.target??'';settings.showModal()};$('#settingsBtn').addEventListener('click',openSettings);$('#goalBox').addEventListener('click',e=>{if(e.target.closest('#setGoal'))openSettings()});$('#cancelSettings').addEventListener('click',()=>settings.close());
   $('#settingsForm').addEventListener('submit',e=>{e.preventDefault();const raw=$('#goalInput').value.trim().replace(',','.');const n=Number(raw);if(raw&&(!Number.isFinite(n)||n<20||n>400)){$('#goalInput').setCustomValidity('Введите вес от 20 до 400 кг');$('#goalInput').reportValidity();return}$('#goalInput').setCustomValidity('');data.target=raw?Math.round(n*10)/10:null;persist();settings.close();render()});
   $('#exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({...data,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tihiy-progress-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)});
+  $('#csvBtn').addEventListener('click',()=>{const dates=[...new Set([...Object.keys(data.entries),...Object.keys(data.weights)])].sort();const rows=[['Дата','Соблюдение плана','Вес (кг)']];
+    for(const day of dates)rows.push([day,data.entries[day]==='yes'?'Да':data.entries[day]==='no'?'Нет':'',data.weights[day]===undefined?'':String(data.weights[day]).replace('.',',')]);
+    const csv='\uFEFF'+rows.map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tihiy-progress-'+today()+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)});
   $('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;try{if(file.size>2e6)throw Error('Файл слишком большой');const obj=JSON.parse(await file.text());if(!obj||obj.version!==1||!obj.entries||!obj.weights||typeof obj.entries!=='object'||typeof obj.weights!=='object'||Array.isArray(obj.entries)||Array.isArray(obj.weights))throw Error('Неверный формат резервной копии');const next=clean(obj);if(!confirm(`Заменить текущие записи данными из «${file.name}»? Это действие нельзя отменить без резервной копии.`))return;data=next;persist();selected=today();cursor=new Date(new Date().getFullYear(),new Date().getMonth(),1);render();alert('Записи восстановлены.')}catch(err){alert('Не удалось восстановить: '+err.message)}});
   render();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 })();
