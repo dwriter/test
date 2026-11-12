@@ -70,6 +70,7 @@
     if(name==='week')renderWeek();
     if(name==='review')renderReview();
     if(name==='notes')renderNotes();
+    if(name==='transition')renderTransition();
     if(name==='session')populateBookSelects();
     window.scrollTo({top:0,behavior:'instant'});
   }
@@ -120,6 +121,18 @@
     });
     $('bookGrid').innerHTML=out;
   }
+  function renderTransition(){
+    var b=active();if(!b)return;
+    var idx=state.books.findIndex(function(x){return x.id===b.id;});
+    var next=state.books.slice(idx+1).find(function(x){return x.status==='planned'||x.status==='paused';})||
+      state.books.find(function(x){return x.id!==b.id&&(x.status==='planned'||x.status==='paused');});
+    var first=b.status==='finished'?'Вы закончили «'+b.title+'». Можно прислушаться к оставшимся чувствам.':
+      'Вы сейчас с книгой «'+b.title+'». Переход пока не обязателен — здесь просто лежит идея на будущее.';
+    $('transitionSuggestion').innerHTML='<p>'+esc(first)+'</p>'+
+      (next?'<div class="next-book"><div class="eyebrow">ВОЗМОЖНО, СЛЕДОМ</div><h3>'+esc(next.title)+'</h3><p>'+esc(next.description||'Новая история для исследования.')+'</p>'+
+        '<button class="btn primary small" data-start-book="'+esc(next.id)+'">Выбрать следующей ↗</button></div>':
+        '<div class="next-book"><h3>Маршрут пройден — выбирайте свободно</h3><p>Можно перечитать любимое или добавить новую книгу на полку.</p><button class="btn small ghost" data-go="route">Открыть полку</button></div>');
+  }
   function populateBookSelects(){
     var selectors=[$('sessionBook'),$('noteBook')];
     selectors.forEach(function(el){
@@ -165,7 +178,7 @@
     $('recentSessions').innerHTML=arr.map(function(s){
       return '<div class="session-row"><div class="session-date">'+esc(fmtDate(parseDay(s.date)))+'</div><div class="session-body"><strong>'+esc(book(s.book)?book(s.book).title:'Книга')+'</strong><p>'+
        n(s.minutes)+' мин · '+(s.mode==='audio'?'прослушивание':'чтение')+(pages(s)?' · '+pages(s)+' стр.':'')+
-       (s.feeling?' · '+esc(s.feeling):'')+'</p></div><span class="session-mode">'+(s.mode==='audio'?'♫ аудио':'▤ текст')+'</span><button aria-label="Удалить запись" class="delete-btn" data-delete-session="'+esc(s.id)+'">×</button></div>';
+       (s.wellbeing?' · '+esc({calm:'спокойно',tired:'усталость',energized:'бодрость',tense:'напряжение'}[s.wellbeing]||s.wellbeing):'')+(s.focus?' · концентрация '+n(s.focus)+'/5':'')+(s.feeling?' · '+esc(s.feeling):'')+'</p></div><span class="session-mode">'+(s.mode==='audio'?'♫ аудио':'▤ текст')+'</span><button aria-label="Удалить запись" class="delete-btn" data-delete-session="'+esc(s.id)+'">×</button></div>';
     }).join('')||'<p class="empty">Первая запись появится после вашей первой встречи с книгой.</p>';
   }
   function renderNotes(){
@@ -180,7 +193,7 @@
        '<div class="note-actions"><button class="link-btn" data-copy-note="'+esc(note.id)+'">Скопировать</button><button class="link-btn" data-delete-note="'+esc(note.id)+'">Удалить</button></div></div>';
     }).join('')||'<p class="empty">Здесь появятся ваши мысли по главам. Можно начать с одного предложения.</p>';
   }
-  function getMean(arr,key){return arr.length?(sumOf(arr,function(x){return n(x[key]);})/arr.length):null;}
+  function getMean(arr,key){var rated=arr.filter(function(x){return Number(x[key])>=1&&Number(x[key])<=5;});return rated.length?(sumOf(rated,function(x){return n(x[key]);})/rated.length):null;}
   function compareRow(label,arr,key,color){
     var v=getMean(arr,key);return '<div class="comp-line"><span>'+esc(label)+'</span><div class="comp-track"><div class="comp-fill" style="background:'+color+';width:'+(v==null?0:(v/5*100).toFixed(1))+'%"></div></div><b>'+(v==null?'—':v.toFixed(1))+'</b></div>';
   }
@@ -200,9 +213,9 @@
         '<div class="bar-read" style="height:'+(readMin/max*142).toFixed(1)+'px"></div><div class="bar-audio" style="height:'+(audioMin/max*142).toFixed(1)+'px"></div></div><small>'+DAYS[(parseDay(day).getDay()+6)%7]+'</small></div>';
     }).join('');
     $('comparison').innerHTML='<div class="comp-title">▤ Чтение · '+r.length+' сесс.</div>'+
-      compareRow('Вовлечённость',r,'eng','#5d8a70')+compareRow('Понимание',r,'under','#5d8a70')+compareRow('Удовольствие',r,'joy','#5d8a70')+
+      compareRow('Концентрация',r,'focus','#5d8a70')+compareRow('Вовлечённость',r,'eng','#5d8a70')+compareRow('Понимание',r,'under','#5d8a70')+compareRow('Удовольствие',r,'joy','#5d8a70')+
       '<div class="comp-title">♫ Аудиокниги · '+a.length+' сесс.</div>'+
-      compareRow('Вовлечённость',a,'eng','#d5af8b')+compareRow('Понимание',a,'under','#d5af8b')+compareRow('Удовольствие',a,'joy','#d5af8b');
+      compareRow('Концентрация',a,'focus','#d5af8b')+compareRow('Вовлечённость',a,'eng','#d5af8b')+compareRow('Понимание',a,'under','#d5af8b')+compareRow('Удовольствие',a,'joy','#d5af8b');
     var current=state.reviews.find(function(x){return x.week===monday(iso(new Date()));});
     var form=$('reviewForm');
     ['highlight','context','next'].forEach(function(k){form.elements[k].value=current?String(current[k]||''):'';});
@@ -213,7 +226,7 @@
         (x.next?'<p><b>Следующий шаг:</b> '+esc(x.next)+'</p>':'')+'</div>';
     }).join('')||'<p class="empty">Вы ещё не писали недельный обзор. Он не обязателен.</p>';
   }
-  function renderAll(){renderHome();renderBooks();populateBookSelects();renderWeek();renderRecent();renderNotes();renderReview();}
+  function renderAll(){renderHome();renderBooks();renderTransition();populateBookSelects();renderWeek();renderRecent();renderNotes();renderReview();}
   function selectBook(id,open){
     var b=book(id);if(!b)return;
     if(b.status!=='finished')b.status='reading';
@@ -244,7 +257,7 @@
     if(mode==='read'&&((from===''&&to!=='')||(from!==''&&to==='')||(from!==''&&Number(to)<Number(from)))){
       $('sessionFeedback').textContent='Для подсчёта страниц укажите начало и конец, либо оставьте оба поля пустыми.';return;
     }
-    var rec={id:safeId(),book:id,date:d,mode:mode,minutes:min,from:mode==='read'&&from!==''?Number(from):'',to:mode==='read'&&to!==''?Number(to):'',
+    var rec={id:safeId(),book:id,date:d,mode:mode,minutes:min,focus:n(fd.get('focus')),from:mode==='read'&&from!==''?Number(from):'',to:mode==='read'&&to!==''?Number(to):'',
       wellbeing:String(fd.get('wellbeing')),place:String(fd.get('place')),eng:n(fd.get('eng')),under:n(fd.get('under')),joy:n(fd.get('joy')),feeling:String(fd.get('feeling')||'').slice(0,600)};
     state.sessions.push(rec);
     var b=book(id);
@@ -344,7 +357,7 @@
     });
     $('sessionBook').addEventListener('change',updatePagesFromBook);
     $('sessionMode').addEventListener('change',updateSessionMode);
-    ['eng','under','joy'].forEach(function(id){$(id).addEventListener('input',function(){$(id==='eng'?'engOut':id==='under'?'underOut':'joyOut').textContent=$(id).value;});});
+    ['focus','eng','under','joy'].forEach(function(id){$(id).addEventListener('input',function(){$(id==='focus'?'focusOut':id==='eng'?'engOut':id==='under'?'underOut':'joyOut').textContent=$(id).value;});});
     $('sessionForm').addEventListener('submit',recordSession);
     $('noteForm').addEventListener('submit',recordNote);
     $('reviewForm').addEventListener('submit',saveReview);
