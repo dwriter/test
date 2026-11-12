@@ -1,0 +1,19 @@
+{
+  "name": "Тихая мастерская — чтение",
+  "short_name": "Мастерская",
+  "description": "Личный практикум чтения и слушания художественных книг",
+  "lang": "ru",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f1e8",
+  "theme_color": "#e9eee7",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
