@@ -18,6 +18,7 @@
     <nav class="menu" aria-label="Разделы">
       <a href="#home" class="nav-link active" data-nav="home">⌂ <span>Главная</span></a>
       <a href="#route" class="nav-link" data-nav="route">◇ <span>Маршрут книг</span></a>
+      <a href="#transition" class="nav-link" data-nav="transition">↗ <span>Следующая книга</span></a>
       <a href="#week" class="nav-link" data-nav="week">▦ <span>Моя неделя</span></a>
       <a href="#session" class="nav-link" data-nav="session">◷ <span>Сессия</span></a>
       <a href="#notes" class="nav-link" data-nav="notes">✎ <span>Заметки</span></a>
@@ -40,7 +41,7 @@
         <div class="stats-row" id="quickStats"></div>
         <div class="two-col">
           <article class="panel"><div class="panel-head"><div><div class="eyebrow">СЕЙЧАС ЧИТАЮ</div><h2 id="currentBookName">Солярис</h2></div><span class="tiny-mark">01 / ∞</span></div><p id="currentBookDesc" class="muted"></p><div id="currentBookMeta"></div><div class="flex-actions"><button class="btn small" data-go="session">Записать чтение</button><button class="btn small ghost" data-go="route">Моя полка →</button></div></article>
-          <article class="panel"><div class="panel-head"><div><div class="eyebrow">МЯГКОЕ НАПОМИНАНИЕ</div><h2>Книги никуда не спешат</h2></div><span class="leaf">✺</span></div><div id="reminderList"></div><p class="micro">Напоминания появляются только внутри приложения. Никаких ежедневных упрёков и штрафов.</p></article>
+          <article class="panel"><div class="panel-head"><div><div class="eyebrow">МЯГКОЕ НАПОМИНАНИЕ</div><h2>Книги никуда не спешат</h2></div><span class="leaf">✺</span></div><div id="reminderList"></div><p class="micro">Напоминания появляются только внутри приложения. Для внешнего уведомления можно скачать событие календаря. Никаких ежедневных упрёков.</p></article>
         </div>
         <div class="quote-band">«Я читаю не ради количества страниц. Я читаю ради того, что происходит со мной между строк».</div>
       </section>
@@ -49,7 +50,17 @@
         <div class="page-heading"><div class="eyebrow">01 / ВЫБОР КНИГИ</div><h1>Ваш маршрут <em>историй</em></h1><p>От знакомого и атмосферного — к философскому и сложному. Порядок можно менять в любой момент.</p></div>
         <div class="route-intro panel"><strong>Как выбрать сегодня</strong><div class="choice-row"><button class="choice" data-vibe="gentle">Хочу вернуться мягко</button><button class="choice" data-vibe="ideas">Хочу размышлять</button><button class="choice" data-vibe="intense">Хочу сложного</button></div><p id="vibeHint" class="muted">Подсказка: продолжить начатый «Солярис» с одной небольшой сцены — самый низкий порог входа.</p></div>
         <div id="bookGrid" class="book-grid"></div>
+        <div class="panel transition-teaser"><div><h2>А когда закончится книга?</h2><p>Небольшой ритуал завершения: что осталось со мной и какую историю хочется открыть дальше.</p></div><button class="btn small ghost" data-go="transition">Перейти к следующей книге →</button></div>
         <div class="panel add-book"><h2>Добавить свою книгу</h2><form id="addBookForm" class="form-row"><label>Название<input name="title" maxlength="120" required placeholder="Название книги"></label><label>Автор<input name="author" maxlength="100" required placeholder="Автор"></label><button class="btn primary" type="submit">Добавить</button></form></div>
+      </section>
+
+      <section id="transition" class="page">
+        <div class="page-heading"><div class="eyebrow">ПЕРЕХОД / ПОСЛЕ ПОСЛЕДНЕЙ СТРАНИЦЫ</div><h1>Пусть история<br><em>отзвучит.</em></h1><p>Закончить книгу — не значит немедленно начинать другую. Иногда важно немного побыть с финалом.</p></div>
+        <div class="two-col">
+          <div class="panel"><div class="eyebrow">МАЛЕНЬКИЙ РИТУАЛ</div><h2>Перед следующей книгой</h2><div class="transition-steps"><div><b>01</b><span>Назовите одну эмоцию, которую оставила книга.</span></div><div><b>02</b><span>Вспомните идею, к которой хочется вернуться через неделю.</span></div><div><b>03</b><span>Разрешите себе паузу — день, неделю или дольше.</span></div></div><button class="btn ghost small" data-go="notes">Записать мысль о финале →</button></div>
+          <div class="panel"><div class="eyebrow">НЕ СПИСОК ОБЯЗАТЕЛЬСТВ</div><h2>Как выбрать продолжение</h2><p>После сложного философского текста можно взять более динамичный. После насыщенного — что-то медитативное. И необязательно менять книгу, если хочется перечитать любимые страницы.</p><div id="transitionSuggestion"></div></div>
+        </div>
+        <div class="quote-band">Следующая книга ждёт ровно столько, сколько вам нужно.</div>
       </section>
 
       <section id="week" class="page">
@@ -67,7 +78,7 @@
             <div class="form-row"><label>Формат<select name="mode" id="sessionMode"><option value="read">Читал глазами</option><option value="audio">Слушал аудио</option></select></label><label>Минуты<input name="minutes" id="sessionMinutes" type="number" min="1" max="600" value="8" required></label></div>
             <div class="form-row" id="pagesRow"><label>Страница с<input name="from" id="pageFrom" type="number" min="0" max="99999" placeholder="Например, 80"></label><label>По страницу<input name="to" id="pageTo" type="number" min="0" max="99999" placeholder="Например, 88"></label></div>
             <div class="form-row"><label>Самочувствие<select name="wellbeing"><option value="calm">🌿 Спокойно</option><option value="tired">☾ Усталость</option><option value="energized">☀ Бодрость</option><option value="tense">≈ Напряжение</option></select></label><label>Где был<select name="place"><option value="train">В электричке</option><option value="home">Дома</option><option value="other">Другое</option></select></label></div>
-            <div class="ratings"><div class="eyebrow">ОЦЕНКА ПО ОЩУЩЕНИЯМ · 1–5</div><div class="rating-row"><label>Вовлечённость <output id="engOut">3</output><input type="range" name="eng" id="eng" min="1" max="5" value="3"></label><label>Понимание <output id="underOut">3</output><input type="range" name="under" id="under" min="1" max="5" value="3"></label><label>Удовольствие <output id="joyOut">3</output><input type="range" name="joy" id="joy" min="1" max="5" value="3"></label></div></div>
+            <div class="ratings"><div class="eyebrow">ОЦЕНКА ПО ОЩУЩЕНИЯМ · 1–5</div><div class="rating-row"><label>Концентрация <output id="focusOut">3</output><input type="range" name="focus" id="focus" min="1" max="5" value="3"></label><label>Вовлечённость <output id="engOut">3</output><input type="range" name="eng" id="eng" min="1" max="5" value="3"></label><label>Понимание <output id="underOut">3</output><input type="range" name="under" id="under" min="1" max="5" value="3"></label><label>Удовольствие <output id="joyOut">3</output><input type="range" name="joy" id="joy" min="1" max="5" value="3"></label></div></div>
             <label>Что осталось после чтения? <span class="optional">(необязательно)</span><textarea name="feeling" rows="2" maxlength="600" placeholder="Одна мысль, эмоция или вопрос..."></textarea></label>
             <button class="btn primary wide" type="submit">Сохранить встречу с книгой ↗</button><div class="form-feedback" id="sessionFeedback" role="status"></div>
           </form></div>
