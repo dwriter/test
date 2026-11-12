@@ -63,7 +63,7 @@
   function lastSeven(){var now=iso(new Date());return state.sessions.filter(function(s){return s.date>=dayOffset(now,-6)&&s.date<=now;});}
   function numberBox(value,label){return '<div class="stat"><div class="number">'+esc(value)+'</div><small>'+esc(label)+'</small></div>';}
   function go(name){
-    if(!$(''+name)||!document.querySelector('#'+name+'.page'))return;
+    if(!document.getElementById(name)||!document.getElementById(name).classList.contains('page'))return;
     document.querySelectorAll('.page').forEach(function(el){el.classList.toggle('active',el.id===name);});
     document.querySelectorAll('.nav-link').forEach(function(el){el.classList.toggle('active',el.dataset.nav===name);});
     history.replaceState(null,'','#'+name);
@@ -198,7 +198,7 @@
       var audioMin=sumOf(cur.filter(function(s){return s.mode==='audio';}),function(s){return n(s.minutes);});
       return '<div class="bar-col" title="'+esc(day+': чтение '+readMin+' мин, аудио '+audioMin+' мин')+'"><div class="bar-heights">'+
         '<div class="bar-read" style="height:'+(readMin/max*142).toFixed(1)+'px"></div><div class="bar-audio" style="height:'+(audioMin/max*142).toFixed(1)+'px"></div></div><small>'+DAYS[(parseDay(day).getDay()+6)%7]+'</small></div>';
-    }).join('')+'</div><div class="legend"><span><i class="dot green"></i>Чтение</span><span><i class="dot orange"></i>Аудио</span></div>';
+    }).join('');
     $('comparison').innerHTML='<div class="comp-title">▤ Чтение · '+r.length+' сесс.</div>'+
       compareRow('Вовлечённость',r,'eng','#5d8a70')+compareRow('Понимание',r,'under','#5d8a70')+compareRow('Удовольствие',r,'joy','#5d8a70')+
       '<div class="comp-title">♫ Аудиокниги · '+a.length+' сесс.</div>'+
@@ -308,7 +308,7 @@
     timer.remaining=Math.max(0,Math.ceil((timer.end-Date.now())/1000));
     if(timer.remaining===0){
       timerStop();$('sessionMinutes').value=timer.initial;$('timerHint').textContent='Время вышло. Хотите — сохраните сессию. Продолжать необязательно.';
-      toast('8 минут могут быть целой историей. Вы молодец, что нашли время.');
+      toast('Короткая сессия завершена. Можно остановиться или продолжить.');
     }else timerDraw();
   }
   function timerStart(){
@@ -377,13 +377,13 @@
         e.target.value='';
       };reader.readAsText(f,'UTF-8');
     });
-    window.addEventListener('hashchange',function(){var name=location.hash.slice(1);if(document.querySelector('#'+name+'.page'))go(name);});
+    window.addEventListener('hashchange',function(){var name=location.hash.slice(1);if(document.getElementById(name)&&document.getElementById(name).classList.contains('page'))go(name);});
   }
   function init(){
     $('todayLabel').textContent=formatDate(iso(new Date()));
     $('sessionDate').value=iso(new Date());
     initEvents();renderAll();updateSessionMode();timerDraw();
-    var initial=location.hash.replace('#','');go(document.querySelector('#'+initial+'.page')?initial:'home');
+    var initial=location.hash.replace('#','');go(initial&&document.getElementById(initial)&&document.getElementById(initial).classList.contains('page')?initial:'home');
     if('serviceWorker' in navigator&&location.protocol==='https:'){
       navigator.serviceWorker.register('./sw.js').catch(function(){});
     }
