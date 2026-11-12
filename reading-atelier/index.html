@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#eee9db">
+  <meta name="description" content="Тихая мастерская чтения — личный практикум возвращения к художественным книгам.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Тихая мастерская · Практикум чтения</title>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">✳</span><div><strong>Тихая мастерская</strong><small>личный практикум чтения</small></div></div>
+    <nav class="menu" aria-label="Разделы">
+      <a href="#home" class="nav-link active" data-nav="home">⌂ <span>Главная</span></a>
+      <a href="#route" class="nav-link" data-nav="route">◇ <span>Маршрут книг</span></a>
+      <a href="#week" class="nav-link" data-nav="week">▦ <span>Моя неделя</span></a>
+      <a href="#session" class="nav-link" data-nav="session">◷ <span>Сессия</span></a>
+      <a href="#notes" class="nav-link" data-nav="notes">✎ <span>Заметки</span></a>
+      <a href="#review" class="nav-link" data-nav="review">◫ <span>Обзор</span></a>
+      <a href="#comfort" class="nav-link" data-nav="comfort">♧ <span>Удобство</span></a>
+    </nav>
+    <div class="sidebar-bottom"><p>Не марафон. Не обязанность.<br>Просто место для историй.</p><span>✺ без наказаний за пропуски</span></div>
+  </aside>
+  <div class="maincol">
+    <header class="topbar"><span class="crumb">практика возвращения к чтению</span><span id="todayLabel" class="topdate"></span><button type="button" id="backupBtn" class="plain-btn">⇩ <span>Сохранить данные</span></button></header>
+    <main>
+      <section id="home" class="page active">
+        <div class="hero">
+          <div class="eyebrow">ВАША СОБСТВЕННАЯ ЧИТАТЕЛЬСКАЯ ЖИЗНЬ</div>
+          <h1>Вернуться<br>к <em>удовольствию</em><br>читать.</h1>
+          <p>Не заменять аудиокниги. Не догонять чужие нормы. Снова научиться оставаться с текстом, находить в нём идеи и испытывать эмоции.</p>
+          <div class="hero-actions"><button class="btn primary" data-go="session">Начать 8 минут <span>↗</span></button><button class="btn soft" data-go="route">Выбрать книгу</button></div>
+          <div class="hero-decoration" aria-hidden="true"><div class="paper p1"></div><div class="paper p2"></div><div class="paper p3"><span>folio</span><b>∞</b></div></div>
+        </div>
+        <div class="stats-row" id="quickStats"></div>
+        <div class="two-col">
+          <article class="panel"><div class="panel-head"><div><div class="eyebrow">СЕЙЧАС ЧИТАЮ</div><h2 id="currentBookName">Солярис</h2></div><span class="tiny-mark">01 / ∞</span></div><p id="currentBookDesc" class="muted"></p><div id="currentBookMeta"></div><div class="flex-actions"><button class="btn small" data-go="session">Записать чтение</button><button class="btn small ghost" data-go="route">Моя полка →</button></div></article>
+          <article class="panel"><div class="panel-head"><div><div class="eyebrow">МЯГКОЕ НАПОМИНАНИЕ</div><h2>Книги никуда не спешат</h2></div><span class="leaf">✺</span></div><div id="reminderList"></div><p class="micro">Напоминания появляются только внутри приложения. Никаких ежедневных упрёков и штрафов.</p></article>
+        </div>
+        <div class="quote-band">«Я читаю не ради количества страниц. Я читаю ради того, что происходит со мной между строк».</div>
+      </section>
+
+      <section id="route" class="page">
+        <div class="page-heading"><div class="eyebrow">01 / ВЫБОР КНИГИ</div><h1>Ваш маршрут <em>историй</em></h1><p>От знакомого и атмосферного — к философскому и сложному. Порядок можно менять в любой момент.</p></div>
+        <div class="route-intro panel"><strong>Как выбрать сегодня</strong><div class="choice-row"><button class="choice" data-vibe="gentle">Хочу вернуться мягко</button><button class="choice" data-vibe="ideas">Хочу размышлять</button><button class="choice" data-vibe="intense">Хочу сложного</button></div><p id="vibeHint" class="muted">Подсказка: продолжить начатый «Солярис» с одной небольшой сцены — самый низкий порог входа.</p></div>
+        <div id="bookGrid" class="book-grid"></div>
+        <div class="panel add-book"><h2>Добавить свою книгу</h2><form id="addBookForm" class="form-row"><label>Название<input name="title" maxlength="120" required placeholder="Название книги"></label><label>Автор<input name="author" maxlength="100" required placeholder="Автор"></label><button class="btn primary" type="submit">Добавить</button></form></div>
+      </section>
+
+      <section id="week" class="page">
+        <div class="page-heading"><div class="eyebrow">02 / ПЛАН НА НЕДЕЛЮ</div><h1>Маленькие <em>встречи</em> с книгой</h1><p>План — приглашение, а не обязательство. Начинаем с коротких окон дома и в электричке. Любой день можно сделать выходным.</p></div>
+        <div class="panel"><div class="split-head"><div><h2>Неделя <span id="weekDates"></span></h2><p class="muted">Подсвечиваются фактические сессии, а не «провалы».</p></div><button class="btn small ghost" id="resetWeek">Вернуть мягкий план</button></div><div id="weekGrid" class="week-grid"></div><div class="week-foot"><span id="weekDone"></span><span>Время аудио тоже учитывается, но не подменяет тихое чтение.</span></div></div>
+        <div class="two-col"><div class="panel"><h2>Мягкий режим</h2><p>Если день оказался тяжёлым, достаточно открыть книгу на одну страницу. Если не получилось — ничего не нужно «отрабатывать».</p><label class="switch-line"><input type="checkbox" id="gentleToggle" checked><span>Включён: никаких серий, штрафов и красных дней</span></label></div><div class="panel"><h2>Минимум, который работает</h2><p>На старте ориентир — четыре короткие встречи в неделю. Через 2–3 недели повышать время стоит лишь тогда, когда хочется продолжать.</p><button class="btn small ghost" data-go="comfort">Обустроить место →</button></div></div>
+      </section>
+
+      <section id="session" class="page">
+        <div class="page-heading"><div class="eyebrow">03 / КОРОТКИЕ СЕССИИ</div><h1>Побыть с <em>текстом</em></h1><p>Даже 8 минут — полноценная встреча с книгой. Таймер необязателен, а запись можно внести и задним числом.</p></div>
+        <div class="two-col session-columns">
+          <div class="panel timer-card"><div class="eyebrow">ТИХИЙ ТАЙМЕР</div><div id="timerDisplay" class="timer-display" aria-live="off">08:00</div><div class="timer-opts"><button class="time-pill selected" data-time="5">5 мин</button><button class="time-pill" data-time="8">8 мин</button><button class="time-pill" data-time="12">12 мин</button><button class="time-pill" data-time="20">20 мин</button></div><div class="timer-actions"><button class="btn primary" id="timerStart">Начать</button><button class="btn soft" id="timerReset">Сброс</button></div><p id="timerHint" class="muted">Когда время выйдет, можно остановиться посреди главы. Это нормально.</p></div>
+          <div class="panel"><h2>Запись сессии</h2><form id="sessionForm" class="stack-form">
+            <div class="form-row"><label>Книга<select name="book" id="sessionBook"></select></label><label>Дата<input name="date" id="sessionDate" type="date" required></label></div>
+            <div class="form-row"><label>Формат<select name="mode" id="sessionMode"><option value="read">Читал глазами</option><option value="audio">Слушал аудио</option></select></label><label>Минуты<input name="minutes" id="sessionMinutes" type="number" min="1" max="600" value="8" required></label></div>
+            <div class="form-row" id="pagesRow"><label>Страница с<input name="from" id="pageFrom" type="number" min="0" max="99999" placeholder="Например, 80"></label><label>По страницу<input name="to" id="pageTo" type="number" min="0" max="99999" placeholder="Например, 88"></label></div>
+            <div class="form-row"><label>Самочувствие<select name="wellbeing"><option value="calm">🌿 Спокойно</option><option value="tired">☾ Усталость</option><option value="energized">☀ Бодрость</option><option value="tense">≈ Напряжение</option></select></label><label>Где был<select name="place"><option value="train">В электричке</option><option value="home">Дома</option><option value="other">Другое</option></select></label></div>
+            <div class="ratings"><div class="eyebrow">ОЦЕНКА ПО ОЩУЩЕНИЯМ · 1–5</div><div class="rating-row"><label>Вовлечённость <output id="engOut">3</output><input type="range" name="eng" id="eng" min="1" max="5" value="3"></label><label>Понимание <output id="underOut">3</output><input type="range" name="under" id="under" min="1" max="5" value="3"></label><label>Удовольствие <output id="joyOut">3</output><input type="range" name="joy" id="joy" min="1" max="5" value="3"></label></div></div>
+            <label>Что осталось после чтения? <span class="optional">(необязательно)</span><textarea name="feeling" rows="2" maxlength="600" placeholder="Одна мысль, эмоция или вопрос..."></textarea></label>
+            <button class="btn primary wide" type="submit">Сохранить встречу с книгой ↗</button><div class="form-feedback" id="sessionFeedback" role="status"></div>
+          </form></div>
+        </div>
+        <div class="panel"><div class="split-head"><h2>Последние встречи</h2><span class="muted">Своя история без оценок за дисциплину</span></div><div id="recentSessions"></div></div>
+      </section>
+
+      <section id="notes" class="page">
+        <div class="page-heading"><div class="eyebrow">04 / ЗАМЕТКИ ПО ГЛАВЕ</div><h1>Не пересказ.<br><em>Отголосок.</em></h1><p>Одна небольшая заметка закрепляет не только факты, но и личную реакцию на текст.</p></div>
+        <div class="two-col notes-cols"><div class="panel"><form id="noteForm" class="stack-form"><label>Книга<select id="noteBook" name="book"></select></label><label>Глава / фрагмент<input name="chapter" placeholder="Например: «Хэрри» или глава 4" maxlength="120" required></label><label>Что произошло? <span class="optional">Одно-два предложения</span><textarea name="happened" rows="3" placeholder="Без полного пересказа"></textarea></label><label>Что я почувствовал?<textarea name="emotion" rows="3" placeholder="Тревогу, нежность, любопытство, раздражение..."></textarea></label><label>Какая мысль осталась?<textarea name="thought" rows="3" placeholder="Какой вопрос или идея не отпускает?"></textarea></label><label>Что хочу узнать или обсудить? <span class="optional">(необязательно)</span><textarea name="question" rows="2" placeholder="Вопрос к миру книги, герою или самому себе"></textarea></label><button type="submit" class="btn primary wide">Сохранить заметку</button><div id="noteFeedback" class="form-feedback" role="status"></div></form></div>
+        <div><div class="panel"><h2>Поговорить о прочитанном</h2><p>Попробуйте не рецензию, а разговор: «Какой выбор героя я не понял?», «Где книга изменила мою точку зрения?», «Что было бы, если...?»</p><button class="btn small ghost" id="copyDiscussion">Скопировать вопросы для обсуждения ↗</button><p class="micro">Вопросы можно обсудить с близким человеком или вставить в ChatGPT.</p></div><div class="panel notes-list-panel"><div class="split-head"><h2>Мои заметки</h2><span id="notesCount" class="muted"></span></div><div id="notesList"></div></div></div></div>
+      </section>
+
+      <section id="review" class="page">
+        <div class="page-heading"><div class="eyebrow">05 / ЕЖЕНЕДЕЛЬНЫЙ ОБЗОР</div><h1>Что дали мне <em>книги?</em></h1><p>Сравниваем не скорость, а переживания. Цифры помогают замечать закономерности, но ничего не требуют.</p></div>
+        <div id="reviewStats" class="stats-row"></div>
+        <div class="two-col"><div class="panel"><h2>Последние 7 дней</h2><div id="weeklyBars" class="bars"></div><p class="micro">Отдельно отображаются минуты чтения и прослушивания; пустые дни нейтральны.</p></div><div class="panel"><h2>Чтение и аудио</h2><div id="comparison"></div><p class="micro">Это личные оценки, а не научный эксперимент: обстановка, усталость и книга могут влиять на результат.</p></div></div>
+        <div class="panel"><h2>Недельное письмо себе</h2><form id="reviewForm" class="stack-form"><label>Что особенно зацепило?<textarea name="highlight" rows="2" placeholder="Сцена, образ, диалог, мысль..."></textarea></label><label>В какой ситуации было удобнее читать?<textarea name="context" rows="2" placeholder="Например, дома в кресле или в дороге"></textarea></label><label>Что попробовать на следующей неделе?<textarea name="next" rows="2" placeholder="Одна маленькая перемена"></textarea></label><button class="btn primary" type="submit">Сохранить обзор</button><p id="reviewFeedback" class="form-feedback" role="status"></p></form><div id="pastReviews"></div></div>
+        <div class="panel data-panel"><div><h2>Ваши данные — у вас</h2><p class="muted">Записи сохраняются только в этом браузере. Для переноса на другой телефон или резервной копии используйте JSON.</p></div><div class="flex-actions"><button id="exportBtn" class="btn small ghost">Скачать JSON</button><label class="btn small ghost upload-label">Импортировать JSON<input id="importFile" type="file" accept=".json,application/json" hidden></label></div></div>
+      </section>
+
+      <section id="comfort" class="page">
+        <div class="page-heading"><div class="eyebrow">06 / УДОБНОЕ МЕСТО</div><h1>Читать <em>телом тоже.</em></h1><p>Не нужно искать идеальную позу. Важнее опора для рук, спокойная шея и возможность менять положение.</p></div>
+        <div class="two-col"><div class="panel posture"><div class="posture-icon">⌂</div><h2>Дома · кресло-качалка IKEA</h2><p>Поставьте стопы устойчиво; используйте подголовник и при необходимости небольшую подушку под предплечья. Поднимайте электронную книгу ближе к линии взгляда, не прижимая подбородок к груди.</p><div class="tip">Начало: 12 минут, затем сменить позу или посмотреть вдаль.</div></div><div class="panel posture"><div class="posture-icon">▤</div><h2>Дома · компьютерное кресло</h2><p>Подстройте подлокотники так, чтобы локти опирались без подъёма плеч. Поясничная подушка — если с ней удобно; валик под шею не должен толкать голову вперёд.</p><div class="tip">Удобство важнее удерживания одной «правильной» позы.</div></div></div>
+        <div class="panel posture train"><div class="posture-icon">≋</div><h2>В электричке</h2><div class="train-grid"><p>Сядьте с опорой для спины. Поддерживайте локти рюкзаком или курткой на коленях; держите ридер выше, чем обычно держали бы телефон. При дискомфорте меняйте положение рук.</p><p>Выбирайте знакомую книгу и короткую сессию 5–8 минут. В шуме поездки аудиокнига может оказаться лучше — это не «измена» чтению.</p></div><div class="tip">При боли, онемении или стойком дискомфорте остановитесь; не пытайтесь «перетерпеть» ради страницы.</div></div>
+        <div class="panel checklist"><h2>Место готово?</h2><label><input type="checkbox" class="comfort-check"> Ридер на комфортной высоте</label><label><input type="checkbox" class="comfort-check"> Предплечья имеют опору</label><label><input type="checkbox" class="comfort-check"> Свет не заставляет щуриться</label><label><input type="checkbox" class="comfort-check"> Можно остановиться через 5–10 минут</label><p class="micro">Эти галочки не влияют на статистику и не сохраняются.</p></div>
+      </section>
+    </main>
+    <footer><span>Тихая мастерская · Сделано для удовольствия от книг</span><span>✺ без гонки за страницами</span></footer>
+  </div>
+</div>
+<nav class="mobile-nav" aria-label="Мобильная навигация"><button data-go="home">⌂<span>Главная</span></button><button data-go="route">◇<span>Книги</span></button><button data-go="session">◷<span>Сессия</span></button><button data-go="notes">✎<span>Заметки</span></button><button data-go="review">◫<span>Обзор</span></button></nav>
+<div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
